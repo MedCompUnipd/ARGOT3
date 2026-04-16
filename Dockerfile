@@ -47,10 +47,9 @@ ENV PATH="/app/bin:${PATH}"
 # Set other environment variables
 ENV LC_ALL=C
 ENV LANG=C
-ENV JAVA_HOME=/usr/lib/jvm/java-17-openjdk-amd64
 ENV PYTHONPATH=/app/src
 
 # -----------------------------
 # Entry point
 # -----------------------------
-ENTRYPOINT ["./run_step1.sh"]
+ENTRYPOINT ["/app/run_step1.sh"]

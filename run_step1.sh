@@ -187,20 +187,14 @@ run mkdir -p "$input_dir" "$output_dir" "$preds_dir"
 # -----------------------------
 # Print configuration
 echo
-echo "=== ENVIRONMENT ==="
-java -version 2>&1 | head -n 1
-python3 --version
-"$diamond_bin" --version
-
-echo
 echo "=== CONFIGURATION ==="
-echo "FASTA:            $input_fasta"
-echo "DIAMOND DB:       $diamond_db"
-echo "GO ontology:      $go_owl"
-echo "Output dir:       $outdir"
-echo "Threads:          $threads"
-echo "Mongo host:       $mongodb_host"
-echo "Mongo DB:         $mongodb_db"
+echo "  FASTA:            $input_fasta"
+echo "  DIAMOND DB:       $diamond_db"
+echo "  GO ontology:      $go_owl"
+echo "  Output dir:       $outdir"
+echo "  Threads:          $threads"
+echo "  Mongo host:       $mongodb_host"
+echo "  Mongo DB:         $mongodb_db"
 
 # Run pipeline steps
 echo
