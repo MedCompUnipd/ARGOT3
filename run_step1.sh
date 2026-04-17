@@ -39,7 +39,7 @@ mongodb_db=""
 
 diamond_bin="${diamond_bin:-diamond}"
 argot_jar="${argot_jar:-/app/bin/Argot3-1.0.jar}"
-src_dir="${src_dir:-/app/src}"
+src_dir="${src_dir:-/app/src/step1}"
 
 # -----------------------------
 # Usage

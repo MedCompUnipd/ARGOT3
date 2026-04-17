@@ -33,7 +33,7 @@ run() {
 # -----------------------------
 # Defaults
 # -----------------------------
-src_dir="${src_dir:-/app/src}"
+src_dir="${src_dir:-/app/src/step2}"
 
 structure_dir=""
 weights_dir=""
