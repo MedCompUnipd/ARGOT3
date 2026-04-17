@@ -16,10 +16,14 @@ verbose=0
 
 run() {
     if [[ "$dry_run" -eq 1 ]]; then
-        printf '[DRY-RUN] %q ' "$@"; echo
+        echo -n "[DRY-RUN] "
+        printf '%q ' "$@"
+        echo
     else
         if [[ "$verbose" -eq 1 ]]; then
-            printf '[RUN] %q ' "$@"; echo
+            echo -n "[RUN] "
+            printf '%q ' "$@"
+            echo
         fi
         "$@"
     fi
