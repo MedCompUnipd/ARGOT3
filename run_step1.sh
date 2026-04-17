@@ -128,7 +128,7 @@ missing=0
 
 # Validate threads is a positive integer
 if ! [[ "$threads" =~ ^[1-9][0-9]*$ ]]; then
-    err "-t <threads> must be a positive integer, got: '$threads'"
+    err "-t <threads> must be a positive integer, got '$threads'"
     exit 1
 fi
 
@@ -138,20 +138,20 @@ if [[ -f "$diamond_db" ]]; then
 elif [[ -f "${diamond_db}.dmnd" ]]; then
     diamond_db="${diamond_db}.dmnd"
 else
-    err "DIAMOND DB not found: $diamond_db"
+    err "DIAMOND DB $diamond_db not found"
     exit 1
 fi
 
-[[ -f "$input_fasta" ]] || { err "FASTA not found: $input_fasta"; exit 1; }
-[[ -f "$go_owl" ]]      || { err "GO file not found: $go_owl"; exit 1; }
+[[ -f "$input_fasta" ]] || { err "FASTA file $input_fasta not found"; exit 1; }
+[[ -f "$go_owl" ]]      || { err "GO file $go_owl not found"; exit 1; }
 
-command -v "$diamond_bin" >/dev/null 2>&1 || { err "diamond not found: $diamond_bin"; exit 1; }
-command -v python3       >/dev/null 2>&1 || { err "python3 not found"; exit 1; }
-command -v java          >/dev/null 2>&1 || { err "java not found"; exit 1; }
+command -v "$diamond_bin" >/dev/null 2>&1 || { err "diamond $diamond_bin not found"; exit 1; }
+command -v python3       >/dev/null 2>&1  || { err "python3 not found"; exit 1; }
+command -v java          >/dev/null 2>&1  || { err "java not found"; exit 1; }
 
-[[ -f "$argot_jar" ]] || { err "Argot JAR not found: $argot_jar"; exit 1; }
+[[ -f "$argot_jar" ]] || { err "Argot3 JAR $argot_jar not found"; exit 1; }
 
-[[ -d "$src_dir" ]] || { err "src_dir not found: $src_dir"; exit 1; }
+[[ -d "$src_dir" ]] || { err "src_dir $src_dir not found"; exit 1; }
 for script in \
     check_fasta.py \
     clean_blastp.py \
@@ -173,10 +173,10 @@ done
 # Handle existing output directory
 if [[ -d "$outdir" ]]; then
     if [[ "$force" -eq 1 ]]; then
-        warn "output directory exists, cleaning: $outdir"
+        warn "output directory exists, cleaning $outdir"
         run rm -rf "$outdir"
     else
-        err "output directory already exists: $outdir"
+        err "output directory $outdir already exists"
         err "use --force to overwrite or choose a different -o <outdir>"
         exit 1
     fi
@@ -186,7 +186,7 @@ run mkdir -p "$outdir"
 
 # Validate writability only when not in dry-run mode
 if [[ "$dry_run" -eq 0 ]] && [[ ! -w "$outdir" ]]; then
-    err "output dir not writable: $outdir"
+    err "output dir $outdir not writable"
     exit 1
 fi
 

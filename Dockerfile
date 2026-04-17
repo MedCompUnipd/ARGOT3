@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM nvcr.io/nvidia/tensorflow:24.01-tf2-py3
 
 # -----------------------------
 # Metadata
@@ -12,7 +12,6 @@ LABEL org.opencontainers.image.authors="Michele Berselli <michele.berselli@unipd
 # -----------------------------
 RUN apt-get update && apt-get install -y --no-install-recommends \
         openjdk-17-jre-headless \
-        python3 python3-pip \
         build-essential \
         libxml2-dev libxslt1-dev zlib1g-dev \
     && rm -rf /var/lib/apt/lists/*
@@ -23,7 +22,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN pip3 install --no-cache-dir \
         pymongo \
         owlready2 \
-        tqdm
+        tqdm \
+        fair-esm \
+        requests \
+        networkx \
+        biopython \
+        matplotlib \
+        numpy
+
+        # torch \
+        # torchvision \
+        # torchaudio \
 
 # -----------------------------
 # Application layout
@@ -37,9 +46,9 @@ RUN chmod +x ./bin/diamond
 # Scripts
 COPY src/ ./src/
 
-# Main entrypoint
-COPY run_step1.sh .
-RUN chmod +x run_step1.sh
+# Runners
+COPY run_step1.sh run_step2.sh ./
+RUN chmod +x run_step1.sh run_step2.sh
 
 # Make binaries globally available
 ENV PATH="/app/bin:${PATH}"
@@ -52,4 +61,5 @@ ENV PYTHONPATH=/app/src
 # -----------------------------
 # Entry point
 # -----------------------------
-ENTRYPOINT ["/app/run_step1.sh"]
+ARG STEP=1
+ENTRYPOINT ["/app/run_step${STEP}.sh"]
