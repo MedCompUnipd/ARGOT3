@@ -58,8 +58,5 @@ ENV LC_ALL=C
 ENV LANG=C
 ENV PYTHONPATH=/app/src
 
-# -----------------------------
-# Entry point
-# -----------------------------
-ARG STEP=1
-ENTRYPOINT ["/app/run_step${STEP}.sh"]
+# CMD
+CMD ["bash"]

@@ -113,7 +113,6 @@ missing=0
 
 [[ $missing -eq 1 ]] && { echo; usage; }
 
-
 [[ -f "$fasta" ]]         || { err "FASTA file $fasta not found"; exit 1; }
 [[ -d "$structure_dir" ]] || { err "structure_dir $structure_dir not found"; exit 1; }
 [[ -d "$weights_dir" ]]   || { err "weights_dir $weights_dir not found"; exit 1; }
