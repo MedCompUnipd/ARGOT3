@@ -33,7 +33,7 @@ run() {
 # -----------------------------
 # Defaults
 # -----------------------------
-src_dir="${src_dir:-/app/src/step2}"
+src_dir="${src_dir:-/app/src/new_model}"
 
 structure_dir=""
 weights_dir=""
@@ -43,7 +43,7 @@ go_owl=""
 # Usage
 # -----------------------------
 usage() {
-    echo "Argot3 STEP2"
+    echo "Argot3 - NEW MODEL"
     echo
     echo "Usage:"
     echo "  $0 -f <fasta> -o <outdir> -s <structure_dir> -w <weights_dir> -g <go.owl> [options]"
@@ -56,13 +56,13 @@ usage() {
     echo "  -g <go.owl>       Gene Ontology file (OWL format)"
     echo
     echo "Optional arguments:"
-    echo "  -S <src_dir>      Path to pipeline scripts (default: /app/src)"
+    echo "  -S <src_dir>      Path to pipeline scripts (default: /app/src/new_model)"
     echo
     echo "Execution flags:"
-    echo "      --dry-run"
-    echo "      --verbose"
-    echo "      --force"
-    echo "  -h"
+    echo "      --dry-run     Print commands without executing them"
+    echo "      --verbose     Print commands as they are executed"
+    echo "      --force       Overwrite existing output directory"
+    echo "  -h                Show this help message and exit"
     echo
     exit 1
 }

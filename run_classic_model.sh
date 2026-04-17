@@ -39,13 +39,13 @@ mongodb_db=""
 
 diamond_bin="${diamond_bin:-diamond}"
 argot_jar="${argot_jar:-/app/bin/Argot3-1.0.jar}"
-src_dir="${src_dir:-/app/src/step1}"
+src_dir="${src_dir:-/app/src/classic_model}"
 
 # -----------------------------
 # Usage
 # -----------------------------
 usage() {
-    echo "Argot3 STEP1"
+    echo "Argot3 - CLASSIC MODEL"
     echo
     echo "Usage:"
     echo "  $0 -f <fasta> -d <db> -g <go.owl> -o <outdir> -D <db_name> [options]"
@@ -62,7 +62,7 @@ usage() {
     echo "  -m <host>         MongoDB host (default: localhost)"
     echo "  -x <diamond>      Path to DIAMOND binary (default: diamond in PATH)"
     echo "  -a <argot.jar>    Path to Argot3 JAR (default: /app/bin/Argot3-1.0.jar)"
-    echo "  -s <src_dir>      Path to pipeline scripts (default: /app/src)"
+    echo "  -s <src_dir>      Path to pipeline scripts (default: /app/src/classic_model)"
     echo
     echo "Execution flags:"
     echo "      --dry-run     Print commands without executing them"

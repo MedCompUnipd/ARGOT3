@@ -46,8 +46,8 @@ RUN chmod +x ./bin/diamond
 COPY src/ ./src/
 
 # Runners
-COPY run_step1.sh run_step2.sh ./
-RUN chmod +x run_step1.sh run_step2.sh
+COPY run_classic_model.sh run_new_model.sh ./
+RUN chmod +x run_classic_model.sh run_new_model.sh
 
 # Make binaries globally available
 ENV PATH="/app/bin:${PATH}"
