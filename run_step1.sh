@@ -13,6 +13,7 @@ warn() { echo "Warning: $*" >&2; }
 # -----------------------------
 dry_run=0
 verbose=0
+force=0
 
 run() {
     if [[ "$dry_run" -eq 1 ]]; then
@@ -57,7 +58,7 @@ usage() {
     echo "  -D <db_name>      MongoDB database name (e.g. ARGOT_NEW)"
     echo
     echo "Optional arguments:"
-    echo "  -t <threads>      Number of threads (default: 1)"
+    echo "  -t <threads>      Number of threads to use for DIAMOND (default: 1)"
     echo "  -m <host>         MongoDB host (default: localhost)"
     echo "  -x <diamond>      Path to DIAMOND binary (default: diamond in PATH)"
     echo "  -a <argot.jar>    Path to Argot3 JAR (default: /app/bin/Argot3-1.0.jar)"
@@ -66,6 +67,7 @@ usage() {
     echo "Execution flags:"
     echo "      --dry-run     Print commands without executing them"
     echo "      --verbose     Print commands as they are executed"
+    echo "      --force       Overwrite existing output directory"
     echo "  -h                Show this help message and exit"
     echo
     exit 1
@@ -80,6 +82,7 @@ for arg in "$@"; do
     case $arg in
         --dry-run) dry_run=1 ;;
         --verbose) verbose=1 ;;
+        --force) force=1 ;;
         --) ;;  # ignore bare --
         *) args+=("$arg") ;;
     esac
@@ -105,13 +108,11 @@ while getopts ":f:d:g:o:t:m:D:x:a:s:h" opt; do
         a) argot_jar=$OPTARG ;;
         s) src_dir=$OPTARG ;;
         h) usage ;;
-        \?) err "Invalid option: -$OPTARG"; usage ;;
-        :) err "Option -$OPTARG requires an argument."; usage ;;
+        \?) err "invalid option -$OPTARG"; usage ;;
+        :) err "option -$OPTARG requires an argument."; usage ;;
     esac
 done
 shift $((OPTIND - 1))
-
-[[ "$verbose" -eq 1 ]] && set -x
 
 # -----------------------------
 # Validate arguments
@@ -149,9 +150,6 @@ command -v python3       >/dev/null 2>&1 || { err "python3 not found"; exit 1; }
 command -v java          >/dev/null 2>&1 || { err "java not found"; exit 1; }
 
 [[ -f "$argot_jar" ]] || { err "Argot JAR not found: $argot_jar"; exit 1; }
-if ! java -jar "$argot_jar" >/dev/null 2>&1; then
-    warn "could not fully validate Argot JAR: $argot_jar"
-fi
 
 [[ -d "$src_dir" ]] || { err "src_dir not found: $src_dir"; exit 1; }
 for script in \
@@ -172,6 +170,18 @@ done
 # -----------------------------
 # Directories
 # -----------------------------
+# Handle existing output directory
+if [[ -d "$outdir" ]]; then
+    if [[ "$force" -eq 1 ]]; then
+        warn "output directory exists, cleaning: $outdir"
+        run rm -rf "$outdir"
+    else
+        err "output directory already exists: $outdir"
+        err "use --force to overwrite or choose a different -o <outdir>"
+        exit 1
+    fi
+fi
+
 run mkdir -p "$outdir"
 
 # Validate writability only when not in dry-run mode
