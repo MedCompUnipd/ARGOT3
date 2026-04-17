@@ -28,11 +28,10 @@ RUN pip3 install --no-cache-dir \
         networkx \
         biopython \
         matplotlib \
-        numpy
-
-        # torch \
-        # torchvision \
-        # torchaudio \
+        numpy \
+        torch \
+        torchvision \
+        torchaudio
 
 # -----------------------------
 # Application layout
