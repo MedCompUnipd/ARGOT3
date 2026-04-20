@@ -238,7 +238,6 @@ new_cmd=(
 
 [[ "$dry_run" -eq 1 ]] && classic_cmd+=(--dry-run) && new_cmd+=(--dry-run)
 [[ "$verbose" -eq 1 ]] && classic_cmd+=(--verbose) && new_cmd+=(--verbose)
-[[ "$force" -eq 1 ]]   && classic_cmd+=(--force)   && new_cmd+=(--force)
 
 # -----------------------------
 # Execute
@@ -250,7 +249,7 @@ elif [[ "$mode" == "new" ]]; then
     run "${new_cmd[@]}"
 
 else
-    if [[ "$exec_mode" == "parallel" ]]; then
+    if [[ "$exec_mode" == "parallel" && "$dry_run" -eq 0 ]]; then
         run "${classic_cmd[@]}" > "$outdir/classic.log" 2>&1 & pid1=$!
         run "${new_cmd[@]}" > "$outdir/new.log" 2>&1 & pid2=$!
 

@@ -28,10 +28,14 @@ RUN pip3 install --no-cache-dir \
         networkx \
         biopython \
         matplotlib \
-        numpy \
+        numpy
+
+# PyTorch: install from the CUDA 12.1 wheel index (compatible with CUDA 12.x in the base image)
+RUN pip3 install --no-cache-dir \
         torch \
         torchvision \
-        torchaudio
+        torchaudio \
+        --index-url https://download.pytorch.org/whl/cu121
 
 # -----------------------------
 # Application layout

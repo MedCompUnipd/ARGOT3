@@ -128,7 +128,9 @@ for script in \
     predict_batch.py \
     join.py \
     propagate.py \
-    format_out.py
+    format_out.py \
+    models.py \
+    owlLibrary3.py
 do
     [[ -f "$src_dir/$script" ]] || {
         err "file not found '$src_dir/$script' (required pipeline script)"
@@ -182,7 +184,7 @@ run python3 "$src_dir/check_fasta.py" \
     -f "$fasta" \
     -o "$data/proteins_list.fasta"
 
-run bash -c "grep '>' '$data/proteins_list.fasta' | cut -d' ' -f1 | sort -u | sed 's/>//' > '$data/proteins_list.txt'"
+run bash -c "set -o pipefail; grep '>' '$data/proteins_list.fasta' | cut -d' ' -f1 | sort -u | sed 's/>//' > '$data/proteins_list.txt'"
 
 run python3 "$src_dir/extract.py" \
     esm2_t33_650M_UR50D \
@@ -190,7 +192,7 @@ run python3 "$src_dir/extract.py" \
     "$data/torch_embeddings" \
     --repr_layers 33 --include per_tok
 
-run bash -c "ls -1 '$data/torch_embeddings' | cut -d'.' -f1 | sort -u > '$data/embedded_prots.txt'"
+run bash -c "set -o pipefail; ls -1 '$data/torch_embeddings' | cut -d'.' -f1 | sort -u > '$data/embedded_prots.txt'"
 
 if [[ "$dry_run" -eq 0 ]]; then
 
@@ -200,7 +202,7 @@ if [[ "$dry_run" -eq 0 ]]; then
     if [[ "$n_total" -ne "$n_embedded" ]]; then
         warn "re-embedding missing proteins"
 
-        run bash -c "comm -13 \"$data/embedded_prots.txt\" \"$data/proteins_list.txt\" > \"$data/without_embeddings.txt\""
+        run bash -c "set -o pipefail; comm -13 \"$data/embedded_prots.txt\" \"$data/proteins_list.txt\" > \"$data/without_embeddings.txt\""
 
         run python3 "$src_dir/get_fastas_uniprot.py" \
             -i "$data/without_embeddings.txt" \
