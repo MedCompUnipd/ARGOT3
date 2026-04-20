@@ -46,8 +46,8 @@ RUN chmod +x ./bin/diamond
 COPY src/ ./src/
 
 # Runners
-COPY run_classic_model.sh run_new_model.sh ./
-RUN chmod +x run_classic_model.sh run_new_model.sh
+COPY entrypoint.sh ./
+RUN chmod +x ./src/run_classic_model.sh ./src/run_new_model.sh entrypoint.sh
 
 # Make binaries globally available
 ENV PATH="/app/bin:${PATH}"
@@ -55,7 +55,6 @@ ENV PATH="/app/bin:${PATH}"
 # Set other environment variables
 ENV LC_ALL=C
 ENV LANG=C
-ENV PYTHONPATH=/app/src
 
-# CMD
-CMD ["bash"]
+# Entrypoint
+ENTRYPOINT [ "/app/entrypoint.sh" ]

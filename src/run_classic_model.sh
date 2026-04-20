@@ -34,7 +34,7 @@ run() {
 # Default values
 # -----------------------------
 threads=1
-mongodb_host="localhost"
+mongodb_host="mongodb"
 mongodb_db=""
 
 diamond_bin="${diamond_bin:-diamond}"
@@ -45,30 +45,32 @@ src_dir="${src_dir:-/app/src/classic_model}"
 # Usage
 # -----------------------------
 usage() {
-    echo "Argot3 - CLASSIC MODEL"
+    echo "Argot3 - Classic Model"
+    echo
+    echo "Run the Argot3 classic pipeline based on sequence similarity, MongoDB annotations, and ontology propagation."
     echo
     echo "Usage:"
     echo "  $0 -f <fasta> -d <db> -g <go.owl> -o <outdir> -D <db_name> [options]"
     echo
     echo "Required arguments:"
-    echo "  -f <fasta>        Input protein FASTA file"
-    echo "  -d <db>           DIAMOND database (prefix or .dmnd file)"
-    echo "  -g <go.owl>       Gene Ontology file (OWL format)"
-    echo "  -o <outdir>       Output directory"
-    echo "  -D <db_name>      MongoDB database name (e.g. ARGOT_NEW)"
+    echo "  -f <fasta>             Input protein FASTA file"
+    echo "  -d <db>                DIAMOND database (prefix or .dmnd file)"
+    echo "  -g <go.owl>            Gene Ontology file (OWL format)"
+    echo "  -o <outdir>            Output directory"
+    echo "  -D <db_name>           MongoDB database name (e.g. ARGOT_NEW)"
     echo
     echo "Optional arguments:"
-    echo "  -t <threads>      Number of threads to use for DIAMOND (default: 1)"
-    echo "  -m <host>         MongoDB host (default: localhost)"
-    echo "  -x <diamond>      Path to DIAMOND binary (default: diamond in PATH)"
-    echo "  -a <argot.jar>    Path to Argot3 JAR (default: /app/bin/Argot3-1.0.jar)"
-    echo "  -s <src_dir>      Path to pipeline scripts (default: /app/src/classic_model)"
+    echo "  -t <threads>           Number of threads for DIAMOND (default: 1)"
+    echo "  -m <host>              MongoDB host (default: mongodb)"
+    echo "  -x <diamond>           Path to DIAMOND binary (default: diamond in PATH)"
+    echo "  -a <argot.jar>         Path to Argot3 JAR (default: /app/bin/Argot3-1.0.jar)"
+    echo "  -s <src_dir>           Path to pipeline scripts (default: /app/src/classic_model)"
     echo
     echo "Execution flags:"
-    echo "      --dry-run     Print commands without executing them"
-    echo "      --verbose     Print commands as they are executed"
-    echo "      --force       Overwrite existing output directory"
-    echo "  -h                Show this help message and exit"
+    echo "      --dry-run          Print commands without executing them"
+    echo "      --verbose          Print commands as they are executed"
+    echo "      --force            Overwrite existing output directory"
+    echo "  -h                     Show this help message and exit"
     echo
     exit 1
 }
@@ -88,7 +90,6 @@ for arg in "$@"; do
     esac
 done
 set -- "${args[@]+"${args[@]}"}"
-# -> replace $@ with all elements of args or with nothing if args is empty
 
 input_fasta=""
 diamond_db=""
@@ -108,8 +109,8 @@ while getopts ":f:d:g:o:t:m:D:x:a:s:h" opt; do
         a) argot_jar=$OPTARG ;;
         s) src_dir=$OPTARG ;;
         h) usage ;;
-        \?) err "invalid option -$OPTARG"; usage ;;
-        :) err "option -$OPTARG requires an argument."; usage ;;
+        \?) err "unknown argument '-$OPTARG'"; usage ;;
+        :) err "missing required value for -$OPTARG"; usage ;;
     esac
 done
 shift $((OPTIND - 1))
@@ -118,40 +119,38 @@ shift $((OPTIND - 1))
 # Validate arguments
 # -----------------------------
 missing=0
-[[ -z "$input_fasta" ]] && { err "missing -f <fasta>"; missing=1; }
-[[ -z "$diamond_db" ]]  && { err "missing -d <db>"; missing=1; }
-[[ -z "$go_owl" ]]      && { err "missing -g <go.owl>"; missing=1; }
-[[ -z "$outdir" ]]      && { err "missing -o <outdir>"; missing=1; }
-[[ -z "$mongodb_db" ]]  && { err "missing -D <db_name>"; missing=1; }
+[[ -z "$input_fasta" ]] && { err "missing required argument -f <fasta>"; missing=1; }
+[[ -z "$diamond_db" ]]  && { err "missing required argument -d <db>"; missing=1; }
+[[ -z "$go_owl" ]]      && { err "missing required argument -g <go.owl>"; missing=1; }
+[[ -z "$outdir" ]]      && { err "missing required argument -o <outdir>"; missing=1; }
+[[ -z "$mongodb_db" ]]  && { err "missing required argument -D <db_name>"; missing=1; }
 
 [[ $missing -eq 1 ]] && { echo; usage; }
 
-# Validate threads is a positive integer
 if ! [[ "$threads" =~ ^[1-9][0-9]*$ ]]; then
-    err "-t <threads> must be a positive integer, got '$threads'"
+    err "invalid value for -t <threads>, must be a positive integer (got '$threads')"
     exit 1
 fi
 
-# DIAMOND DB flexible handling
 if [[ -f "$diamond_db" ]]; then
     :
 elif [[ -f "${diamond_db}.dmnd" ]]; then
     diamond_db="${diamond_db}.dmnd"
 else
-    err "DIAMOND DB $diamond_db not found"
+    err "file not found '$diamond_db' (-d)"
     exit 1
 fi
 
-[[ -f "$input_fasta" ]] || { err "FASTA file $input_fasta not found"; exit 1; }
-[[ -f "$go_owl" ]]      || { err "GO file $go_owl not found"; exit 1; }
+[[ -f "$input_fasta" ]] || { err "file not found '$input_fasta' (-f)"; exit 1; }
+[[ -f "$go_owl" ]]      || { err "file not found '$go_owl' (-g)"; exit 1; }
 
-command -v "$diamond_bin" >/dev/null 2>&1 || { err "diamond $diamond_bin not found"; exit 1; }
-command -v python3       >/dev/null 2>&1  || { err "python3 not found"; exit 1; }
-command -v java          >/dev/null 2>&1  || { err "java not found"; exit 1; }
+command -v "$diamond_bin" >/dev/null 2>&1 || { err "required executable not found '$diamond_bin'"; exit 1; }
+command -v python3       >/dev/null 2>&1  || { err "required executable not found 'python3'"; exit 1; }
+command -v java          >/dev/null 2>&1  || { err "required executable not found 'java'"; exit 1; }
 
-[[ -f "$argot_jar" ]] || { err "Argot3 JAR $argot_jar not found"; exit 1; }
+[[ -f "$argot_jar" ]] || { err "file not found '$argot_jar' (-a)"; exit 1; }
 
-[[ -d "$src_dir" ]] || { err "src_dir $src_dir not found"; exit 1; }
+[[ -d "$src_dir" ]] || { err "directory not found '$src_dir' (-s)"; exit 1; }
 for script in \
     check_fasta.py \
     clean_blastp.py \
@@ -162,7 +161,7 @@ for script in \
     owlLibrary3.py
 do
     [[ -f "$src_dir/$script" ]] || {
-        err "missing script $script in $src_dir"
+        err "file not found '$src_dir/$script' (required pipeline script)"
         exit 1
     }
 done
@@ -170,23 +169,20 @@ done
 # -----------------------------
 # Directories
 # -----------------------------
-# Handle existing output directory
 if [[ -d "$outdir" ]]; then
     if [[ "$force" -eq 1 ]]; then
-        warn "output directory exists, cleaning $outdir"
+        warn "output directory exists, cleaning '$outdir'"
         run rm -rf "$outdir"
     else
-        err "output directory $outdir already exists"
-        err "use --force to overwrite or choose a different -o <outdir>"
+        err "output directory exists '$outdir' (use --force)"
         exit 1
     fi
 fi
 
 run mkdir -p "$outdir"
 
-# Validate writability only when not in dry-run mode
 if [[ "$dry_run" -eq 0 ]] && [[ ! -w "$outdir" ]]; then
-    err "output dir $outdir not writable"
+    err "output directory is not writable '$outdir'"
     exit 1
 fi
 
@@ -197,9 +193,8 @@ preds_dir="$outdir/predictions"
 run mkdir -p "$input_dir" "$output_dir" "$preds_dir"
 
 # -----------------------------
-# Pipeline
-# -----------------------------
 # Print configuration
+# -----------------------------
 echo
 echo "=== CONFIGURATION ==="
 echo "  FASTA:            $input_fasta"
@@ -209,10 +204,16 @@ echo "  Output dir:       $outdir"
 echo "  Threads:          $threads"
 echo "  Mongo host:       $mongodb_host"
 echo "  Mongo DB:         $mongodb_db"
+echo "  DIAMOND binary:   $diamond_bin"
+echo "  Argot JAR:        $argot_jar"
+echo "  Source dir:       $src_dir"
 
-# Run pipeline steps
+# -----------------------------
+# Pipeline
+# -----------------------------
 echo
 echo "=== RUNNING STEPS ==="
+
 run python3 "$src_dir/check_fasta.py" -f "$input_fasta" -o "$input_dir/proteins_list.fasta"
 
 run "$diamond_bin" blastp \
@@ -247,7 +248,7 @@ run python3 "$src_dir/in-cafa_format.py" \
     -f temporary
 
 [[ "$dry_run" -eq 1 ]] || [[ -f "$output_dir/temporary_argot_out_in_cafa.txt" ]] || {
-    err "expected CAFA output not found"
+    err "file not found '$output_dir/temporary_argot_out_in_cafa.txt' (expected CAFA output)"
     exit 1
 }
 run mv "$output_dir/temporary_argot_out_in_cafa.txt" \
@@ -269,4 +270,5 @@ run python3 "$src_dir/format_out.py" \
     -o "$preds_dir/propagated.tsv" \
     -g "$go_owl"
 
+echo
 echo "=== DONE ==="

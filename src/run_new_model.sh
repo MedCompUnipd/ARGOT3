@@ -43,26 +43,28 @@ go_owl=""
 # Usage
 # -----------------------------
 usage() {
-    echo "Argot3 - NEW MODEL"
+    echo "Argot3 - New Model"
+    echo
+    echo "Run the Argot3 structure-based deep learning pipeline using embeddings, structure data, and trained model weights."
     echo
     echo "Usage:"
     echo "  $0 -f <fasta> -o <outdir> -s <structure_dir> -w <weights_dir> -g <go.owl> [options]"
     echo
     echo "Required arguments:"
-    echo "  -f <fasta>        Input protein FASTA file"
-    echo "  -o <outdir>       Output directory"
-    echo "  -s <dir>          Structure directory"
-    echo "  -w <dir>          Weights directory"
-    echo "  -g <go.owl>       Gene Ontology file (OWL format)"
+    echo "  -f <fasta>             Input protein FASTA file"
+    echo "  -o <outdir>            Output directory"
+    echo "  -s <dir>               Structure directory"
+    echo "  -w <dir>               Weights directory"
+    echo "  -g <go.owl>            Gene Ontology file (OWL format)"
     echo
     echo "Optional arguments:"
-    echo "  -S <src_dir>      Path to pipeline scripts (default: /app/src/new_model)"
+    echo "  -S <src_dir>           Path to pipeline scripts (default: /app/src/new_model)"
     echo
     echo "Execution flags:"
-    echo "      --dry-run     Print commands without executing them"
-    echo "      --verbose     Print commands as they are executed"
-    echo "      --force       Overwrite existing output directory"
-    echo "  -h                Show this help message and exit"
+    echo "      --dry-run          Print commands without executing them"
+    echo "      --verbose          Print commands as they are executed"
+    echo "      --force            Overwrite existing output directory"
+    echo "  -h                     Show this help message and exit"
     echo
     exit 1
 }
@@ -81,7 +83,6 @@ for arg in "$@"; do
     esac
 done
 set -- "${args[@]+"${args[@]}"}"
-# -> replace $@ with all elements of args or with nothing if args is empty
 
 fasta=""
 outdir=""
@@ -95,8 +96,8 @@ while getopts ":f:o:s:w:g:S:h" opt; do
         g) go_owl=$OPTARG ;;
         S) src_dir=$OPTARG ;;
         h) usage ;;
-        \?) err "invalid option -$OPTARG"; usage ;;
-        :) err "option -$OPTARG requires an argument"; usage ;;
+        \?) err "unknown argument '-$OPTARG'"; usage ;;
+        :) err "missing required value for -$OPTARG"; usage ;;
     esac
 done
 shift $((OPTIND - 1))
@@ -105,20 +106,20 @@ shift $((OPTIND - 1))
 # Validate
 # -----------------------------
 missing=0
-[[ -z "$fasta" ]]          && { err "missing -f <fasta>"; missing=1; }
-[[ -z "$go_owl" ]]         && { err "missing -g <go.owl>"; missing=1; }
-[[ -z "$outdir" ]]         && { err "missing -o <outdir>"; missing=1; }
-[[ -z "$structure_dir" ]]  && { err "missing -s <dir>"; missing=1; }
-[[ -z "$weights_dir" ]]    && { err "missing -w <dir>"; missing=1; }
+[[ -z "$fasta" ]]         && { err "missing required argument -f <fasta>"; missing=1; }
+[[ -z "$go_owl" ]]        && { err "missing required argument -g <go.owl>"; missing=1; }
+[[ -z "$outdir" ]]        && { err "missing required argument -o <outdir>"; missing=1; }
+[[ -z "$structure_dir" ]] && { err "missing required argument -s <dir>"; missing=1; }
+[[ -z "$weights_dir" ]]   && { err "missing required argument -w <dir>"; missing=1; }
 
 [[ $missing -eq 1 ]] && { echo; usage; }
 
-[[ -f "$fasta" ]]         || { err "FASTA file $fasta not found"; exit 1; }
-[[ -d "$structure_dir" ]] || { err "structure_dir $structure_dir not found"; exit 1; }
-[[ -d "$weights_dir" ]]   || { err "weights_dir $weights_dir not found"; exit 1; }
-[[ -f "$go_owl" ]]        || { err "GO file $go_owl not found"; exit 1; }
+[[ -f "$fasta" ]]         || { err "file not found '$fasta' (-f)"; exit 1; }
+[[ -d "$structure_dir" ]] || { err "directory not found '$structure_dir' (-s)"; exit 1; }
+[[ -d "$weights_dir" ]]   || { err "directory not found '$weights_dir' (-w)"; exit 1; }
+[[ -f "$go_owl" ]]        || { err "file not found '$go_owl' (-g)"; exit 1; }
 
-[[ -d "$src_dir" ]]       || { err "src_dir $src_dir not found"; exit 1; }
+[[ -d "$src_dir" ]]       || { err "directory not found '$src_dir' (-S)"; exit 1; }
 for script in \
     check_fasta.py \
     extract.py \
@@ -130,22 +131,22 @@ for script in \
     format_out.py
 do
     [[ -f "$src_dir/$script" ]] || {
-        err "missing script $script in $src_dir"
+        err "file not found '$src_dir/$script' (required pipeline script)"
         exit 1
     }
 done
 
+command -v python3 >/dev/null 2>&1 || { err "required executable not found 'python3'"; exit 1; }
+
 # -----------------------------
 # Output dir
 # -----------------------------
-# Handle existing output directory
 if [[ -d "$outdir" ]]; then
     if [[ "$force" -eq 1 ]]; then
-        warn "output directory exists, cleaning $outdir"
+        warn "output directory exists, cleaning '$outdir'"
         run rm -rf "$outdir"
     else
-        err "output directory $outdir already exists"
-        err "use --force to overwrite or choose a different -o <outdir>"
+        err "output directory exists '$outdir' (use --force)"
         exit 1
     fi
 fi
@@ -153,18 +154,26 @@ fi
 data="$outdir/data"
 preds="$outdir/predictions"
 
-run mkdir -p "$outdir" "$data" "$preds"
+run mkdir -p "$outdir" 
+
+if [[ "$dry_run" -eq 0 ]] && [[ ! -w "$outdir" ]]; then
+    err "output directory is not writable '$outdir'"
+    exit 1
+fi
+
+run mkdir -p "$data" "$preds"
 
 # -----------------------------
 # Pipeline
 # -----------------------------
 echo
 echo "=== CONFIGURATION ==="
-echo "  FASTA:        $fasta"
-echo "  OUTDIR:       $outdir"
-echo "  STRUCTURE:    $structure_dir"
-echo "  WEIGHTS:      $weights_dir"
-echo "  GO:           $go_owl"
+echo "  FASTA:            $fasta"
+echo "  Output dir:       $outdir"
+echo "  Structure dir:    $structure_dir"
+echo "  Weights dir:      $weights_dir"
+echo "  GO ontology:      $go_owl"
+echo "  Source dir:       $src_dir"
 
 echo
 echo "=== RUNNING STEPS ==="
@@ -246,4 +255,5 @@ run python3 "$src_dir/format_out.py" \
     -g "$go_owl" \
     -o "$preds/propagated.tsv"
 
+echo
 echo "=== DONE ==="
