@@ -196,6 +196,7 @@ run mkdir -p "$input_dir" "$output_dir" "$preds_dir"
 # Print configuration
 # -----------------------------
 echo
+echo "=== Running Argot3 - Classic Model ==="
 echo "=== CONFIGURATION ==="
 echo "  FASTA:            $input_fasta"
 echo "  DIAMOND DB:       $diamond_db"
@@ -212,7 +213,7 @@ echo "  Source dir:       $src_dir"
 # Pipeline
 # -----------------------------
 echo
-echo "=== RUNNING STEPS ==="
+echo "=== STEPS ==="
 
 run python3 "$src_dir/check_fasta.py" -f "$input_fasta" -o "$input_dir/proteins_list.fasta"
 

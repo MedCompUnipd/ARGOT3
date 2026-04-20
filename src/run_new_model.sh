@@ -169,6 +169,7 @@ run mkdir -p "$data" "$preds"
 # Pipeline
 # -----------------------------
 echo
+echo "=== Running Argot3 - New Model ==="
 echo "=== CONFIGURATION ==="
 echo "  FASTA:            $fasta"
 echo "  Output dir:       $outdir"
@@ -178,7 +179,7 @@ echo "  GO ontology:      $go_owl"
 echo "  Source dir:       $src_dir"
 
 echo
-echo "=== RUNNING STEPS ==="
+echo "=== STEPS ==="
 
 run python3 "$src_dir/check_fasta.py" \
     -f "$fasta" \
