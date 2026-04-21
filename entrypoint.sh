@@ -259,7 +259,9 @@ elif [[ "$mode" == "new" ]]; then
 
 else
     if [[ "$exec_mode" == "parallel" && "$dry_run" -eq 0 ]]; then
+        echo "=== Running Argot3 - Classic Model ==="
         run "${classic_cmd[@]}" > "$outdir/classic.log" 2>&1 & pid1=$!
+        echo "=== Running Argot3 - New Model ======="
         run "${new_cmd[@]}" > "$outdir/new.log" 2>&1 & pid2=$!
 
         fail=0

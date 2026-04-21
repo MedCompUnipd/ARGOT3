@@ -169,8 +169,8 @@ run mkdir -p "$data" "$preds"
 # Pipeline
 # -----------------------------
 echo
-echo "=== Running Argot3 - New Model ==="
-echo "=== CONFIGURATION ==="
+echo "=== Running Argot3 - New Model ======="
+echo "=== CONFIGURATION ===================="
 echo "  FASTA:            $fasta"
 echo "  Output dir:       $outdir"
 echo "  Structure dir:    $structure_dir"
@@ -179,7 +179,7 @@ echo "  GO ontology:      $go_owl"
 echo "  Source dir:       $src_dir"
 
 echo
-echo "=== STEPS ==="
+echo "=== STEPS ============================"
 
 run python3 "$src_dir/check_fasta.py" \
     -f "$fasta" \
@@ -259,4 +259,4 @@ run python3 "$src_dir/format_out.py" \
     -o "$preds/propagated.tsv"
 
 echo
-echo "=== DONE ==="
+echo "=== DONE ============================="

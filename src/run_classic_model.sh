@@ -205,7 +205,7 @@ run mkdir -p "$input_dir" "$output_dir" "$preds_dir"
 # -----------------------------
 echo
 echo "=== Running Argot3 - Classic Model ==="
-echo "=== CONFIGURATION ==="
+echo "=== CONFIGURATION ===================="
 echo "  FASTA:            $input_fasta"
 echo "  DIAMOND DB:       $diamond_db"
 echo "  GO ontology:      $go_owl"
@@ -222,7 +222,7 @@ echo "  Source dir:       $src_dir"
 # Pipeline
 # -----------------------------
 echo
-echo "=== STEPS ==="
+echo "=== STEPS ============================"
 
 run python3 "$src_dir/check_fasta.py" -f "$input_fasta" -o "$input_dir/proteins_list.fasta"
 
@@ -282,4 +282,4 @@ run python3 "$src_dir/format_out.py" \
     -g "$go_owl"
 
 echo
-echo "=== DONE ==="
+echo "=== DONE ============================="
