@@ -45,6 +45,7 @@ go_owl=""
 diamond_db=""
 threads=1
 mongo_host="mongodb"
+mongo_port=27017
 mongo_db=""
 
 # new
@@ -90,6 +91,7 @@ usage() {
     echo "  -t <threads>           Number of threads for DIAMOND (default: 1)"
     echo "  --mongo-db <name>      MongoDB database name (e.g. ARGOT_NEW)"
     echo "  --mongo-host <host>    MongoDB host (default: mongodb)"
+    echo "  --mongo-port <port>    MongoDB port (default: 27017)"
     echo
     echo "New model arguments:"
     echo "  -s <dir>               Structure directory"
@@ -120,6 +122,7 @@ while [[ $# -gt 0 ]]; do
         -t) threads=$2; shift 2 ;;
         --mongo-db) mongo_db=$2; shift 2 ;;
         --mongo-host) mongo_host=$2; shift 2 ;;
+        --mongo-port) mongo_port=$2; shift 2 ;;
 
         -s) structure_dir=$2; shift 2 ;;
         -w) weights_dir=$2; shift 2 ;;
@@ -168,6 +171,11 @@ if [[ "$mode" == "classic" || "$mode" == "both" ]]; then
 
     if ! [[ "$threads" =~ ^[1-9][0-9]*$ ]]; then
         err "invalid value for -t <threads>, must be a positive integer (got '$threads')"
+        exit 1
+    fi
+
+    if ! [[ "$mongo_port" =~ ^[0-9]+$ ]]; then
+        err "invalid value for --mongo-port <port>, must be a positive integer (got '$mongo_port')"
         exit 1
     fi
 
@@ -224,6 +232,7 @@ classic_cmd=(
     -o "$classic_out"
     -t "$threads"
     -m "$mongo_host"
+    -P "$mongo_port"
     -D "$mongo_db"
 )
 

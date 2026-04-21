@@ -8,7 +8,7 @@ import csv
 # Define the root GO terms
 ROOT_TERMS = {'GO:0008150', 'GO:0003674', 'GO:0005575'}
 
-def read_annotations_from_database(server, database, collection, proteins):
+def read_annotations_from_database(server, port, database, collection, proteins):
     """
     Reads GO annotations for a set of proteins from a MongoDB database.
     Returns a dictionary containing the annotations for each protein.
@@ -17,7 +17,7 @@ def read_annotations_from_database(server, database, collection, proteins):
     page_size = 10000
     proteins = list(proteins)
     go_annotations = {}
-    client = pymongo.MongoClient(host=server, port=27017)
+    client = pymongo.MongoClient(host=server, port=port)
     db = client[database]
     collection = db[collection]
     for page in range(0, len(proteins), page_size):
@@ -39,13 +39,13 @@ def read_protein_ids_from_blastp_file(blastp_file):
     return protein_ids
 
 
-def generate_argot_input(server, database, collection, blastp_file, output_file):
+def generate_argot_input(server, port, database, collection, blastp_file, output_file):
     """
     Generates ARGOT2 input file from BLASTP output file and GO annotations in MongoDB.
     """
     protein_ids = read_protein_ids_from_blastp_file(blastp_file)
 
-    go_annotations = read_annotations_from_database(server, database, collection, protein_ids)
+    go_annotations = read_annotations_from_database(server, port, database, collection, protein_ids)
 
     print('Writing ARGOT2 input file...')
     current_query_id = ''
@@ -80,7 +80,7 @@ def main(args):
     """
     Parses command line arguments and generates ARGOT2 input file.
     """
-    generate_argot_input(args['mongo_server'], args['mongo_db'], args['mongo_collection'], args['blast_file'], args['argot_input'])
+    generate_argot_input(args['mongo_server'], args['mongo_port'], args['mongo_db'], args['mongo_collection'], args['blast_file'], args['argot_input'])
 
 
 if __name__ == '__main__':
@@ -88,6 +88,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Convert Blast output file to Argot input file')
     parser.add_argument('-b', '--blast_file', metavar='BLAST_FILE', help='Blast output file', required=True)
     parser.add_argument('-m', '--mongo_server', metavar='MONGO_SERVER', help='MongoDB server name or IP address', required=True)
+    parser.add_argument('-p', '--mongo_port', metavar='MONGO_PORT', help='MongoDB port (default: 27017)', type=int, default=27017)
     parser.add_argument('-d', '--mongo_db', metavar='MONGO_DB', help='MongoDB database name', required=True)
     parser.add_argument('-c', '--mongo_collection', metavar='MONGO_COLLECTION', help='MongoDB collection name', required=True)
     parser.add_argument('-o', '--argot_input', metavar='ARGOT_INPUT', help='Argot input file to be generated', required=True)

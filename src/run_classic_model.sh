@@ -35,6 +35,7 @@ run() {
 # -----------------------------
 threads=1
 mongodb_host="mongodb"
+mongodb_port=27017
 mongodb_db=""
 
 diamond_bin="${diamond_bin:-diamond}"
@@ -62,6 +63,7 @@ usage() {
     echo "Optional arguments:"
     echo "  -t <threads>           Number of threads for DIAMOND (default: 1)"
     echo "  -m <host>              MongoDB host (default: mongodb)"
+    echo "  -P <port>              MongoDB port (default: 27017)"
     echo "  -x <diamond>           Path to DIAMOND binary (default: diamond in PATH)"
     echo "  -a <argot.jar>         Path to Argot3 JAR (default: /app/bin/Argot3-1.0.jar)"
     echo "  -s <src_dir>           Path to pipeline scripts (default: /app/src/classic_model)"
@@ -96,7 +98,7 @@ diamond_db=""
 go_owl=""
 outdir=""
 
-while getopts ":f:d:g:o:t:m:D:x:a:s:h" opt; do
+while getopts ":f:d:g:o:t:m:P:D:x:a:s:h" opt; do
     case $opt in
         f) input_fasta=$OPTARG ;;
         d) diamond_db=$OPTARG ;;
@@ -104,6 +106,7 @@ while getopts ":f:d:g:o:t:m:D:x:a:s:h" opt; do
         o) outdir=$OPTARG ;;
         t) threads=$OPTARG ;;
         m) mongodb_host=$OPTARG ;;
+        P) mongodb_port=$OPTARG ;;
         D) mongodb_db=$OPTARG ;;
         x) diamond_bin=$OPTARG ;;
         a) argot_jar=$OPTARG ;;
@@ -126,6 +129,11 @@ missing=0
 [[ -z "$mongodb_db" ]]  && { err "missing required argument -D <db_name>"; missing=1; }
 
 [[ $missing -eq 1 ]] && { echo; usage; }
+
+if ! [[ "$mongodb_port" =~ ^[0-9]+$ ]]; then
+    err "invalid value for -P <port>, must be a positive integer (got '$mongodb_port')"
+    exit 1
+fi
 
 if ! [[ "$threads" =~ ^[1-9][0-9]*$ ]]; then
     err "invalid value for -t <threads>, must be a positive integer (got '$threads')"
@@ -204,6 +212,7 @@ echo "  GO ontology:      $go_owl"
 echo "  Output dir:       $outdir"
 echo "  Threads:          $threads"
 echo "  Mongo host:       $mongodb_host"
+echo "  Mongo port:       $mongodb_port"
 echo "  Mongo DB:         $mongodb_db"
 echo "  DIAMOND binary:   $diamond_bin"
 echo "  Argot JAR:        $argot_jar"
@@ -230,6 +239,7 @@ run python3 "$src_dir/clean_blastp.py" \
 run python3 "$src_dir/new_blastp_to_argot_inp.py" \
     -b "$output_dir/diamond_clean.blastp" \
     -m "$mongodb_host" \
+    -p "$mongodb_port" \
     -d "$mongodb_db" \
     -c annots \
     -o "$input_dir/argot_in.txt"
