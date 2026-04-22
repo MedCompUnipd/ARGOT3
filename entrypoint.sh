@@ -223,12 +223,12 @@ fi
 if [[ "$mode" == "merge" || "$mode" == "all" ]]; then
     [[ -f "$script_merging" ]] || { err "file not found '$script_merging' (merging script)"; exit 1; }
 
-    if ! [[ "$species" =~ ^[0-9]+$ ]]; then
-        err "invalid value for --species <taxid>, must be a positive integer (got '$species')"
-        exit 1
-    fi
-
     if [[ "$species" -ne 0 ]]; then
+        if ! [[ "$species" =~ ^[0-9]+$ ]]; then
+            err "invalid value for --species <taxid>, must be a positive integer (got '$species')"
+            exit 1
+        fi
+
         [[ -z "$taxonomy_dir" ]]    && { err "missing required argument -T <dir> (required with --species)"; exit 1; }
         [[ -z "$constraints_dir" ]] && { err "missing required argument -C <dir> (required with --species)"; exit 1; }
         [[ -d "$taxonomy_dir" ]]    || { err "directory not found '$taxonomy_dir' (-T)"; exit 1; }
@@ -319,10 +319,10 @@ elif [[ "$mode" == "both" ]]; then
     if [[ "$exec_mode" == "parallel" && "$dry_run" -eq 0 ]]; then
         echo "=== Running Argot3 - Classic Model ==="
         "${classic_cmd[@]}" > "$outdir/classic.log" 2>&1 & pid1=$!
-        echo "  Started (PID: $pid1)"
+        echo "  Started (Host PID: $pid1)"
         echo "=== Running Argot3 - New Model ======="
         "${new_cmd[@]}" > "$outdir/new.log" 2>&1 & pid2=$!
-        echo "  Started (PID: $pid2)"
+        echo "  Started (Host PID: $pid2)"
         echo
         echo "Logs:"
         echo "  Classic: $outdir/classic.log"
@@ -334,6 +334,9 @@ elif [[ "$mode" == "both" ]]; then
         wait $pid2 || { err "New pipeline failed"; fail=1; }
         [[ $fail -eq 1 ]] && exit 1
 
+        echo
+        echo "=== DONE ============================="
+
     else
         run "${classic_cmd[@]}"
         run "${new_cmd[@]}"
@@ -343,10 +346,10 @@ else  # all
     if [[ "$exec_mode" == "parallel" && "$dry_run" -eq 0 ]]; then
         echo "=== Running Argot3 - Classic Model ==="
         "${classic_cmd[@]}" > "$outdir/classic.log" 2>&1 & pid1=$!
-        echo "  Started (PID: $pid1)"
+        echo "  Started (Host PID: $pid1)"
         echo "=== Running Argot3 - New Model ======="
         "${new_cmd[@]}" > "$outdir/new.log" 2>&1 & pid2=$!
-        echo "  Started (PID: $pid2)"
+        echo "  Started (Host PID: $pid2)"
         echo
         echo "Logs:"
         echo "  Classic: $outdir/classic.log"
@@ -365,6 +368,3 @@ else  # all
 
     run "${merge_cmd[@]}"
 fi
-
-echo
-echo "=== DONE ============================="
