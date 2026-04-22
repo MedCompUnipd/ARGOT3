@@ -66,9 +66,9 @@ script_merging="./src/run_merging.sh"
 # Usage
 # -----------------------------
 usage() {
-    echo "Argot3"
+    echo "ARGOT3"
     echo
-    echo "Run the Argot3 classic model, the new deep learning-based model, or merge their outputs."
+    echo "Run the ARGOT3 classic model, the new deep learning-based model, or merge their outputs."
     echo "MongoDB is expected to be running externally (e.g. via Docker Compose)."
     echo
     echo "Usage:"
@@ -76,7 +76,7 @@ usage() {
     echo
     echo "Execution mode:"
     echo "  --mode <mode>          Select pipeline to run:"
-    echo "                         classic   Run the DIAMOND + Argot3 pipeline"
+    echo "                         classic   Run the DIAMOND + ARGOT3 pipeline"
     echo "                         new       Run the deep learning-based pipeline"
     echo "                         both      Run both pipelines"
     echo "                         merge     Merge existing classic and new outputs"
@@ -317,10 +317,10 @@ elif [[ "$mode" == "merge" ]]; then
 
 elif [[ "$mode" == "both" ]]; then
     if [[ "$exec_mode" == "parallel" && "$dry_run" -eq 0 ]]; then
-        echo "=== Running Argot3 - Classic Model ==="
+        echo "=== Running ARGOT3 Classic Model ====="
         "${classic_cmd[@]}" > "$outdir/classic.log" 2>&1 & pid1=$!
         echo "  Started (Host PID: $pid1)"
-        echo "=== Running Argot3 - New Model ======="
+        echo "=== Running ARGOT3 New Model ========="
         "${new_cmd[@]}" > "$outdir/new.log" 2>&1 & pid2=$!
         echo "  Started (Host PID: $pid2)"
         echo
@@ -344,10 +344,10 @@ elif [[ "$mode" == "both" ]]; then
 
 else  # all
     if [[ "$exec_mode" == "parallel" && "$dry_run" -eq 0 ]]; then
-        echo "=== Running Argot3 - Classic Model ==="
+        echo "=== Running ARGOT3 Classic Model ====="
         "${classic_cmd[@]}" > "$outdir/classic.log" 2>&1 & pid1=$!
         echo "  Started (Host PID: $pid1)"
-        echo "=== Running Argot3 - New Model ======="
+        echo "=== Running ARGOT3 New Model ========="
         "${new_cmd[@]}" > "$outdir/new.log" 2>&1 & pid2=$!
         echo "  Started (Host PID: $pid2)"
         echo

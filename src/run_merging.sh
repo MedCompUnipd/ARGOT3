@@ -48,7 +48,7 @@ constraints_dir=""
 # Usage
 # -----------------------------
 usage() {
-    echo "Argot3 - Merge Predictions"
+    echo "ARGOT3 - Merge Predictions"
     echo
     echo "Merge predictions from the classic model and the new model, with optional taxonomic constraints."
     echo
@@ -182,7 +182,7 @@ run mkdir -p "$outdir/final"
 # Config print
 # -----------------------------
 echo
-echo "=== Running Argot3 Merge =========="
+echo "=== Running ARGOT3 Merge =========="
 echo "=== CONFIGURATION ================="
 echo "  Classic model:   $a25"
 echo "  New model:       $a30"

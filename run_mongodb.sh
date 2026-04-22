@@ -22,7 +22,7 @@ FORCE=0
 # Usage
 # -----------------------------
 usage() {
-    echo "Argot3 - MongoDB Setup"
+    echo "MongoDB Setup"
     echo
     echo "Start a MongoDB instance (Docker or Singularity) and optionally restore a dump directory."
     echo

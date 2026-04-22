@@ -46,9 +46,9 @@ src_dir="${src_dir:-/app/src/classic_model}"
 # Usage
 # -----------------------------
 usage() {
-    echo "Argot3 - Classic Model"
+    echo "ARGOT3 - Classic Model"
     echo
-    echo "Run the Argot3 classic pipeline based on sequence similarity, MongoDB annotations, and ontology propagation."
+    echo "Run the ARGOT3 classic pipeline based on sequence similarity, MongoDB annotations, and ontology propagation."
     echo
     echo "Usage:"
     echo "  $0 -f <fasta> -d <db> -g <go.owl> -o <outdir> -D <db_name> [options]"
@@ -65,7 +65,7 @@ usage() {
     echo "  -m <host>              MongoDB host (default: mongodb)"
     echo "  -P <port>              MongoDB port (default: 27017)"
     echo "  -x <diamond>           Path to DIAMOND binary (default: diamond in PATH)"
-    echo "  -a <argot.jar>         Path to Argot3 JAR (default: /app/bin/Argot3-1.0.jar)"
+    echo "  -a <argot.jar>         Path to ARGOT3 JAR (default: /app/bin/Argot3-1.0.jar)"
     echo "  -s <src_dir>           Path to pipeline scripts (default: /app/src/classic_model)"
     echo
     echo "Execution flags:"
@@ -204,7 +204,7 @@ run mkdir -p "$input_dir" "$output_dir" "$preds_dir"
 # Print configuration
 # -----------------------------
 echo
-echo "=== Running Argot3 - Classic Model ==="
+echo "=== Running ARGOT3 Classic Model ====="
 echo "=== CONFIGURATION ===================="
 echo "  FASTA:            $input_fasta"
 echo "  DIAMOND DB:       $diamond_db"

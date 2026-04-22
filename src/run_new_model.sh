@@ -43,9 +43,9 @@ go_owl=""
 # Usage
 # -----------------------------
 usage() {
-    echo "Argot3 - New Model"
+    echo "ARGOT3 - New Model"
     echo
-    echo "Run the Argot3 deep learning-based pipeline using embeddings, structure data, and trained model weights."
+    echo "Run the ARGOT3 deep learning-based pipeline using embeddings, structure data, and trained model weights."
     echo
     echo "Usage:"
     echo "  $0 -f <fasta> -o <outdir> -s <structure_dir> -w <weights_dir> -g <go.owl> [options]"
@@ -169,7 +169,7 @@ run mkdir -p "$data" "$preds"
 # Pipeline
 # -----------------------------
 echo
-echo "=== Running Argot3 - New Model ======="
+echo "=== Running ARGOT3 New Model ========="
 echo "=== CONFIGURATION ===================="
 echo "  FASTA:            $fasta"
 echo "  Output dir:       $outdir"

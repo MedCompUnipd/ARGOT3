@@ -11,13 +11,13 @@ ARGOT3 is a containerized pipeline for protein function annotation using Gene On
 ## Repository Structure
 
 ```
-ARGOT3.0/
+ARGOT3/
 ├── Dockerfile                  # Container definition (NVIDIA TF base + dependencies)
 ├── entrypoint.sh               # Main pipeline entry point
 ├── run_mongodb.sh              # Host-side MongoDB setup script (Docker or Singularity)
 ├── bin/
 │   ├── diamond                 # DIAMOND binary
-│   └── Argot3-1.0.jar          # Argot3 Java scoring engine
+│   └── Argot3-1.0.jar          # ARGOT3 Java engine
 └── src/
     ├── run_classic_model.sh    # Classic pipeline runner
     ├── run_new_model.sh        # New model pipeline runner
@@ -147,7 +147,7 @@ The main entry point is `entrypoint.sh`, which is set as the Docker `ENTRYPOINT`
 docker run [docker options] argot3 --mode <classic|new|both|merge|all> [options]
 
 Execution mode:
-  --mode <mode>          classic   Run the DIAMOND + Argot3 pipeline
+  --mode <mode>          classic   Run the DIAMOND + ARGOT3 pipeline
                          new       Run the deep learning-based pipeline
                          both      Run both pipelines
                          merge     Merge existing classic and new outputs
@@ -289,11 +289,11 @@ When running with `--exec parallel`, each pipeline writes its logs to `<outdir>/
 <outdir>/classic/
 ├── input/
 │   ├── proteins_list.fasta         # Validated input sequences
-│   └── argot_in.txt                # Argot3 input file
+│   └── argot_in.txt                # ARGOT3 input file
 ├── output/
 │   ├── diamond_raw.blastp          # Raw DIAMOND output
 │   ├── diamond_clean.blastp        # Filtered DIAMOND output
-│   ├── argot_out.txt               # Argot3 raw scores
+│   ├── argot_out.txt               # ARGOT3 raw scores
 │   ├── predictions_raw.tsv         # Unpropagated predictions
 │   └── predictions_prop.tsv        # Propagated predictions
 └── predictions/
