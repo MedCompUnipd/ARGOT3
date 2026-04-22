@@ -36,7 +36,7 @@ The pipeline uses three separate mount points:
 | Mount | Purpose |
 |-------|---------|
 | `-v /path/to/argot3_resource_bundle:/data` | Resource bundle (databases, weights, embeddings) |
-| `-v /path/to/input:/input` | Input files (FASTA) |
+| `-v /path/to/proteins.fasta:/input/proteins.fasta` | Input FASTA file |
 | `-v /path/to/output:/output` | Output directory |
 
 The resource bundle directory should be structured as follows:
@@ -192,7 +192,7 @@ Run the classic model:
 ```bash
 docker run --network host \
     -v /path/to/argot3_resource_bundle:/data \
-    -v /path/to/input:/input \
+    -v /path/to/proteins.fasta:/input/proteins.fasta \
     -v /path/to/output:/output \
     argot3 \
     --mode classic \
@@ -209,7 +209,7 @@ Run the new model:
 ```bash
 docker run --gpus all \
     -v /path/to/argot3_resource_bundle:/data \
-    -v /path/to/input:/input \
+    -v /path/to/proteins.fasta:/input/proteins.fasta \
     -v /path/to/output:/output \
     -e TORCH_HOME=/data/embeddings \
     argot3 \
@@ -225,7 +225,7 @@ Run both pipelines in parallel:
 ```bash
 docker run --gpus all --network host \
     -v /path/to/argot3_resource_bundle:/data \
-    -v /path/to/input:/input \
+    -v /path/to/proteins.fasta:/input/proteins.fasta \
     -v /path/to/output:/output \
     -e TORCH_HOME=/data/embeddings \
     argot3 \
@@ -257,7 +257,7 @@ Run all pipelines end-to-end with taxonomic constraints:
 ```bash
 docker run --gpus all --network host \
     -v /path/to/argot3_resource_bundle:/data \
-    -v /path/to/input:/input \
+    -v /path/to/proteins.fasta:/input/proteins.fasta \
     -v /path/to/output:/output \
     -e TORCH_HOME=/data/embeddings \
     argot3 \
