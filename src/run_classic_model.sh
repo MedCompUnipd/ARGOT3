@@ -58,7 +58,7 @@ usage() {
     echo "  -d <db>                DIAMOND database (prefix or .dmnd file)"
     echo "  -g <go.owl>            Gene Ontology file (OWL format)"
     echo "  -o <outdir>            Output directory"
-    echo "  -D <db_name>           MongoDB database name (e.g. ARGOT_NEW)"
+    echo "  -D <db_name>           MongoDB database name (e.g. ARGOT_DB)"
     echo
     echo "Optional arguments:"
     echo "  -t <threads>           Number of threads for DIAMOND (default: 1)"

@@ -28,18 +28,25 @@ ARGOT3.0/
 
 ## Requirements
 
-The following data files and directories are expected to be available on the host and mounted into the container (e.g. via `-v /data:/data`):
+The pipeline expects a resource bundle directory mounted into the container (e.g. via `-v /data/argot3_resource_bundle:/data`):
 
 ```
-/data/                          # Host directory mounted into the container
-├── proteins.fasta              # Input protein sequences (FASTA format)
+argot3_resource_bundle/
 ├── go.owl                      # Gene Ontology file (OWL format)
-│
-├── uniprot.dmnd                # DIAMOND database          [classic model]
-│
-├── structures/                 # Protein structure files   [new model]
-├── weights/                    # Pre-trained model weights [new model]
-└── embeddings/                 # ESM2 model weights cache  [new model]
+├── uniprot_wGO.dmnd            # DIAMOND database                    [classic model]
+├── dump/                       # MongoDB dump directory               [classic model]
+│   └── ARGOT_DB/
+│       ├── annots.bson
+│       ├── annots.metadata.json
+│       ├── goa.bson
+│       ├── goa.metadata.json
+│       ├── goafreq.bson
+│       ├── goafreq.metadata.json
+│       ├── uniprot_with_go.bson
+│       └── uniprot_with_go.metadata.json
+├── structure/                  # Protein structure files              [new model]
+├── weights/                    # Pre-trained model weights            [new model]
+└── embeddings/                 # ESM2 model weights cache             [new model]
     └── hub/
         └── checkpoints/
             ├── esm2_t33_650M_UR50D.pt
@@ -52,7 +59,7 @@ The `embeddings/` directory holds the pre-downloaded ESM2 model weights used by 
 
 ## MongoDB Setup
 
-MongoDB must be running before the pipeline is invoked. Use `run_mongodb.sh` to start a MongoDB instance and optionally restore a dump archive.
+MongoDB must be running before the pipeline is invoked. Use `run_mongodb.sh` to start a MongoDB instance and optionally restore a dump directory.
 
 > **Note:** `run_mongodb.sh` is a host-side script and is not part of the Docker container.
 
@@ -66,7 +73,7 @@ Options:
   -n <name>       Container/instance name (default: argot-mongodb)
   -p <port>       MongoDB port (default: 27017)
   -d <data_dir>   Host directory for persistent data (default: ~/mongo_data)
-  -f <dump_file>  MongoDB archive dump to restore (optional)
+  -f <dump_dir>   Path to dump directory to restore (optional)
   -i <sif>        Singularity SIF image (optional, default: docker://mongo:7)
   --force         Remove existing data directory before starting
 ```
@@ -74,12 +81,12 @@ Options:
 ### Examples
 Start MongoDB (auto-detected) and restore a dump:
 ```bash
-./run_mongodb.sh -f /path/to/argot.dump
+./run_mongodb.sh -f /path/to/argot_dump/
 ```
 
 Use a custom port and container name:
 ```bash
-./run_mongodb.sh -n my-mongo -p 27018 -f /path/to/argot.dump
+./run_mongodb.sh -n my-mongo -p 27018 -f /path/to/argot_dump/
 ```
 
 #### Use Singularity on HPC with a pre-built SIF
@@ -91,10 +98,10 @@ singularity build mongo.sif docker://mongo:7
 ```
 
 ```bash
-./run_mongodb.sh -r singularity -i /path/to/mongo.sif -f /path/to/argot.dump
+./run_mongodb.sh -r singularity -i /path/to/mongo.sif -f /path/to/argot_dump/
 ```
 
-> **Note:** The dump archive must be in MongoDB archive format (created with `mongodump --archive`).
+> **Note:** The dump directory must be in `mongodump` directory format (created with `mongodump --out <dir>`).
 
 ### Connecting ARGOT3 to MongoDB
 
@@ -166,7 +173,7 @@ docker run --network host \
     -f /data/proteins.fasta \
     -o /data/output \
     -g /data/go.owl \
-    -d /data/uniprot.dmnd \
+    -d /data/uniprot_wGO.dmnd \
     -t 8 \
     --mongo-host localhost \
     --mongo-db ARGOT_DB
@@ -182,7 +189,7 @@ docker run --gpus all --network host \
     -f /data/proteins.fasta \
     -o /data/output \
     -g /data/go.owl \
-    -s /data/structures \
+    -s /data/structure \
     -w /data/weights
 ```
 
@@ -197,11 +204,11 @@ docker run --gpus all --network host \
     -f /data/proteins.fasta \
     -o /data/output \
     -g /data/go.owl \
-    -d /data/uniprot.dmnd \
+    -d /data/uniprot_wGO.dmnd \
     -t 8 \
     --mongo-host localhost \
     --mongo-db ARGOT_DB \
-    -s /data/structures \
+    -s /data/structure \
     -w /data/weights
 ```
 

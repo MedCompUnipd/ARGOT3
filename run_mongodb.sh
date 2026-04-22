@@ -14,7 +14,7 @@ RUNTIME=""
 MONGO_NAME="argot-mongodb"
 MONGO_PORT="27017"
 MONGO_DATA="${HOME}/mongo_data"
-DUMP_FILE=""
+DUMP_FOLDER=""
 SIF_IMAGE=""
 FORCE=0
 
@@ -24,20 +24,20 @@ FORCE=0
 usage() {
     echo "Argot3 - MongoDB Setup"
     echo
-    echo "Start a MongoDB instance (Docker or Singularity) and optionally restore a dump archive."
+    echo "Start a MongoDB instance (Docker or Singularity) and optionally restore a dump directory."
     echo
     echo "Usage:"
-    echo "  $0 [-r <runtime>] [-n <name>] [-p <port>] [-d <data_dir>] [-f <dump_file>] [-i <sif>] [--force]"
+    echo "  $0 [-r <runtime>] [-n <name>] [-p <port>] [-d <data_dir>] [-f <dump_dir>] [-i <sif>] [--force]"
     echo
     echo "Options:"
-    echo "  -r <runtime>    Container runtime: docker | singularity (default: auto-detect)"
-    echo "  -n <name>       Container/instance name (default: argot-mongodb)"
-    echo "  -p <port>       MongoDB port (default: 27017)"
-    echo "  -d <data_dir>   Host directory for persistent data (default: ~/mongo_data)"
-    echo "  -f <dump_file>  MongoDB archive dump to restore (optional)"
-    echo "  -i <sif>        Singularity SIF image (optional, default: docker://mongo:7)"
-    echo "  --force         Remove existing data directory before starting"
-    echo "  -h              Show this help message and exit"
+    echo "  -r <runtime>      Container runtime: docker | singularity (default: auto-detect)"
+    echo "  -n <name>         Container/instance name (default: argot-mongodb)"
+    echo "  -p <port>         MongoDB port (default: 27017)"
+    echo "  -d <data_dir>     Host directory for persistent data (default: ~/mongo_data)"
+    echo "  -f <dump_dir>     Path to dump directory (will be mounted as /dump)"
+    echo "  -i <sif>          Singularity SIF image (optional, default: docker://mongo:7)"
+    echo "  --force           Remove existing data directory before starting"
+    echo "  -h                Show this help message and exit"
     echo
     exit 1
 }
@@ -61,7 +61,7 @@ while getopts ":r:n:p:d:f:i:h" opt; do
         n) MONGO_NAME=$OPTARG ;;
         p) MONGO_PORT=$OPTARG ;;
         d) MONGO_DATA=$OPTARG ;;
-        f) DUMP_FILE=$OPTARG ;;
+        f) DUMP_FOLDER=$OPTARG ;;
         i) SIF_IMAGE=$OPTARG ;;
         h) usage ;;
         \?) err "unknown argument '-$OPTARG'"; usage ;;
@@ -89,6 +89,14 @@ if realpath -m / >/dev/null 2>&1; then
     MONGO_DATA="$(realpath -m "${MONGO_DATA}")"
 else
     MONGO_DATA="$(python3 -c 'import os, sys; print(os.path.realpath(sys.argv[1]))' "${MONGO_DATA}")"
+fi
+
+if [[ -n "${DUMP_FOLDER}" ]]; then
+    if realpath -m / >/dev/null 2>&1; then
+        DUMP_FOLDER="$(realpath -m "${DUMP_FOLDER}")"
+    else
+        DUMP_FOLDER="$(python3 -c 'import os, sys; print(os.path.realpath(sys.argv[1]))' "${DUMP_FOLDER}")"
+    fi
 fi
 
 # Safety checks
@@ -158,15 +166,20 @@ run_docker() {
     else
         echo "Creating MongoDB container..."
 
+        local dump_mount=()
+        if [[ -n "${DUMP_FOLDER}" ]]; then
+            dump_mount=(-v "${DUMP_FOLDER}:/dump")
+        fi
+
         docker run -d \
             --name "${MONGO_NAME}" \
             -p "${MONGO_PORT}:27017" \
             -v "${MONGO_DATA}:/data/db" \
+            "${dump_mount[@]+"${dump_mount[@]}"}" \
             mongo:7 || {
                 err "failed to start container (port ${MONGO_PORT} in use?)"
                 exit 1
             }
-
     fi
 }
 
@@ -187,10 +200,19 @@ run_singularity() {
     else
         echo "Starting Singularity instance..."
 
+        local dump_bind=()
+        if [[ -n "${DUMP_FOLDER}" ]]; then
+            dump_bind=(--bind "${DUMP_FOLDER}:/dump")
+        fi
+
         singularity instance start \
             --bind "${MONGO_DATA}:/data/db" \
+            "${dump_bind[@]+"${dump_bind[@]}"}" \
             "${image}" \
-            "${MONGO_NAME}"
+            "${MONGO_NAME}" || {
+                err "failed to start container"
+                exit 1
+            }
 
         echo "Launching mongod..."
 
@@ -240,26 +262,34 @@ wait_mongo() {
 # Restore dump
 # -----------------------------
 restore_dump() {
-    if [[ -z "$DUMP_FILE" ]]; then
+    if [[ -z "${DUMP_FOLDER}" ]]; then
         echo "No dump provided, skipping restore"
         return
     fi
 
-    echo "Restoring database from dump '${DUMP_FILE}'..."
-
-    [[ -f "$DUMP_FILE" ]] || {
-        err "file not found '$DUMP_FILE'"
+    # Validate on host BEFORE trying container restore
+    if [[ ! -d "${DUMP_FOLDER}" ]]; then
+        err "dump folder not found '${DUMP_FOLDER}'"
         exit 1
-    }
+    fi
 
-    warn "restoring dump (existing data will be overwritten)"
+    echo "Restoring database from dump (mounted at /dump)..."
+    warn "existing data will be overwritten (--drop)"
 
-    if [[ "$RUNTIME" == "docker" ]]; then
+    # mongorestore --drop --numInsertionWorkersPerCollection 4 /dump
+
+    if [[ "${RUNTIME}" == "docker" ]]; then
         docker exec -i "${MONGO_NAME}" \
-            mongorestore --archive --drop < "${DUMP_FILE}"
+            mongorestore --drop /dump || {
+                err "mongorestore failed (docker)"
+                exit 1
+            }
     else
         singularity exec instance://"${MONGO_NAME}" \
-            mongorestore --port "${MONGO_PORT}" --archive --drop < "${DUMP_FILE}"
+            mongorestore --port "${MONGO_PORT}" --drop /dump || {
+                err "mongorestore failed (singularity)"
+                exit 1
+            }
     fi
 
     echo "Restore complete"

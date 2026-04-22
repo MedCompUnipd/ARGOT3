@@ -89,7 +89,7 @@ usage() {
     echo "Classic model arguments:"
     echo "  -d <db>                DIAMOND database (prefix or .dmnd file)"
     echo "  -t <threads>           Number of threads for DIAMOND (default: 1)"
-    echo "  --mongo-db <name>      MongoDB database name (e.g. ARGOT_NEW)"
+    echo "  --mongo-db <name>      MongoDB database name (e.g. ARGOT_DB)"
     echo "  --mongo-host <host>    MongoDB host (default: mongodb)"
     echo "  --mongo-port <port>    MongoDB port (default: 27017)"
     echo
