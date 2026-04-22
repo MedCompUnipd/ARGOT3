@@ -51,7 +51,7 @@ COPY src/ ./src/
 
 # Runners
 COPY entrypoint.sh ./
-RUN chmod +x ./src/run_classic_model.sh ./src/run_new_model.sh entrypoint.sh
+RUN chmod +x ./src/run_classic_model.sh ./src/run_new_model.sh ./src/run_merging.sh entrypoint.sh
 
 # Make binaries globally available
 ENV PATH="/app/bin:${PATH}"
