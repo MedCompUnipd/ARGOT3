@@ -1,9 +1,10 @@
 # ARGOT3
 
-ARGOT3 is a containerized pipeline for protein function annotation using Gene Ontology (GO) terms. It supports two annotation strategies that can be run independently or together:
+ARGOT3 is a containerized pipeline for protein function annotation using Gene Ontology (GO) terms. It supports two annotation strategies that can be run independently or together, with an optional merging step to combine their outputs:
 
 - **Classic model**: sequence similarity-based annotation using DIAMOND, MongoDB-backed GO annotations, and the Argot3 scoring engine
 - **New model**: structure-informed deep learning annotation using ESM2 protein embeddings and trained neural network weights
+- **Merging**: combines predictions from both models, with optional taxonomic constraint filtering
 
 ---
 
@@ -20,15 +21,25 @@ ARGOT3.0/
 └── src/
     ├── run_classic_model.sh    # Classic pipeline runner
     ├── run_new_model.sh        # New model pipeline runner
+    ├── run_merging.sh          # Merging pipeline runner
     ├── classic_model/          # Python scripts for the classic pipeline
-    └── new_model/              # Python scripts for the new model pipeline
+    ├── new_model/              # Python scripts for the new model pipeline
+    └── merging/                # Python scripts for the merging pipeline
 ```
 
 ---
 
 ## Requirements
 
-The pipeline expects a resource bundle directory mounted into the container (e.g. via `-v /data/argot3_resource_bundle:/data`):
+The pipeline uses three separate mount points:
+
+| Mount | Purpose |
+|-------|---------|
+| `-v /path/to/argot3_resource_bundle:/data` | Resource bundle (databases, weights, embeddings) |
+| `-v /path/to/input:/input` | Input files (FASTA) |
+| `-v /path/to/output:/output` | Output directory |
+
+The resource bundle directory should be structured as follows:
 
 ```
 argot3_resource_bundle/
@@ -46,14 +57,18 @@ argot3_resource_bundle/
 │       └── uniprot_with_go.metadata.json
 ├── structure/                  # Protein structure files              [new model]
 ├── weights/                    # Pre-trained model weights            [new model]
-└── embeddings/                 # ESM2 model weights cache             [new model]
-    └── hub/
-        └── checkpoints/
-            ├── esm2_t33_650M_UR50D.pt
-            └── esm2_t33_650M_UR50D-contact-regression.pt
+├── embeddings/                 # ESM2 model weights cache             [new model]
+│   └── hub/
+│       └── checkpoints/
+│           ├── esm2_t33_650M_UR50D.pt
+│           └── esm2_t33_650M_UR50D-contact-regression.pt
+├── taxonomy/                   # NCBI taxonomy files                  [merging, optional]
+└── constraints/                # GO taxonomic constraints             [merging, optional]
 ```
 
 The `embeddings/` directory holds the pre-downloaded ESM2 model weights used by `fair-esm` at runtime. Without it, the pipeline will attempt to download ~2.5 GB at runtime. Pass it to the container via `TORCH_HOME` (see examples below).
+
+The `taxonomy/` and `constraints/` directories are only required when running the merging step with taxonomic constraint filtering (`--species`).
 
 ---
 
@@ -129,19 +144,21 @@ The main entry point is `entrypoint.sh`, which is set as the Docker `ENTRYPOINT`
 ### Usage
 
 ```
-docker run [docker options] argot3 --mode <classic|new|both> [options]
+docker run [docker options] argot3 --mode <classic|new|both|merge|all> [options]
 
 Execution mode:
   --mode <mode>          classic   Run the DIAMOND + Argot3 pipeline
                          new       Run the structure-based deep learning pipeline
                          both      Run both pipelines
+                         merge     Merge existing classic and new outputs
+                         all       Run both pipelines then merge
 
-  --exec <mode>          Execution strategy when --mode=both:
+  --exec <mode>          Execution strategy when --mode=both or --mode=all:
                          sequential (default)   Run classic then new
                          parallel               Run classic and new in parallel
 
 Shared arguments:
-  -f <fasta>             Input protein FASTA file
+  -f <fasta>             Input protein FASTA file (not required for --mode merge)
   -o <outdir>            Output directory
   -g <go.owl>            Gene Ontology file (OWL format)
 
@@ -156,6 +173,11 @@ New model arguments:
   -s <dir>               Structure directory
   -w <dir>               Weights directory
 
+Merge arguments:
+  --species <taxid>      NCBI taxon ID (enables taxonomic constraints) (default: no constraints)
+  -T <dir>               Taxonomy directory (required with --species)
+  -C <dir>               Constraints directory (required with --species)
+
 Execution flags:
   --dry-run              Print commands without executing them
   --verbose              Print commands as they are executed
@@ -167,11 +189,13 @@ Execution flags:
 Run the classic model:
 ```bash
 docker run --network host \
-    -v /data:/data \
+    -v /path/to/argot3_resource_bundle:/data \
+    -v /path/to/input:/input \
+    -v /path/to/output:/output \
     argot3 \
     --mode classic \
-    -f /data/proteins.fasta \
-    -o /data/output \
+    -f /input/proteins.fasta \
+    -o /output/results \
     -g /data/go.owl \
     -d /data/uniprot_wGO.dmnd \
     -t 8 \
@@ -182,12 +206,14 @@ docker run --network host \
 Run the new model:
 ```bash
 docker run --gpus all --network host \
-    -v /data:/data \
+    -v /path/to/argot3_resource_bundle:/data \
+    -v /path/to/input:/input \
+    -v /path/to/output:/output \
     -e TORCH_HOME=/data/embeddings \
     argot3 \
     --mode new \
-    -f /data/proteins.fasta \
-    -o /data/output \
+    -f /input/proteins.fasta \
+    -o /output/results \
     -g /data/go.owl \
     -s /data/structure \
     -w /data/weights
@@ -196,13 +222,15 @@ docker run --gpus all --network host \
 Run both pipelines in parallel:
 ```bash
 docker run --gpus all --network host \
-    -v /data:/data \
+    -v /path/to/argot3_resource_bundle:/data \
+    -v /path/to/input:/input \
+    -v /path/to/output:/output \
     -e TORCH_HOME=/data/embeddings \
     argot3 \
     --mode both \
     --exec parallel \
-    -f /data/proteins.fasta \
-    -o /data/output \
+    -f /input/proteins.fasta \
+    -o /output/results \
     -g /data/go.owl \
     -d /data/uniprot_wGO.dmnd \
     -t 8 \
@@ -212,7 +240,42 @@ docker run --gpus all --network host \
     -w /data/weights
 ```
 
-When running with `--mode both --exec parallel`, each pipeline writes its logs to `<outdir>/classic.log` and `<outdir>/new.log`.
+Merge outputs from a previous run:
+```bash
+docker run \
+    -v /path/to/argot3_resource_bundle:/data \
+    -v /path/to/output:/output \
+    argot3 \
+    --mode merge \
+    -o /output/results \
+    -g /data/go.owl
+```
+
+Run all pipelines end-to-end with taxonomic constraints:
+```bash
+docker run --gpus all --network host \
+    -v /path/to/argot3_resource_bundle:/data \
+    -v /path/to/input:/input \
+    -v /path/to/output:/output \
+    -e TORCH_HOME=/data/embeddings \
+    argot3 \
+    --mode all \
+    --exec parallel \
+    -f /input/proteins.fasta \
+    -o /output/results \
+    -g /data/go.owl \
+    -d /data/uniprot_wGO.dmnd \
+    -t 8 \
+    --mongo-host localhost \
+    --mongo-db ARGOT_DB \
+    -s /data/structure \
+    -w /data/weights \
+    --species 9606 \
+    -T /data/taxonomy \
+    -C /data/constraints
+```
+
+When running with `--exec parallel`, each pipeline writes its logs to `<outdir>/classic.log` and `<outdir>/new.log`.
 
 ---
 
@@ -254,4 +317,30 @@ When running with `--mode both --exec parallel`, each pipeline writes its logs t
     └── propagated.tsv              # Final propagated output
 ```
 
-When running `--mode both`, outputs are placed in `<outdir>/classic/` and `<outdir>/new/` respectively.
+### Merging (`--mode merge` or `--mode all`)
+
+Without taxonomic constraints:
+```
+<outdir>/merged/
+├── unpropagated.tsv
+├── propagated.tsv
+└── final/
+    ├── predictions_slim.tsv        # Slim GO terms only
+    └── predictions_full.tsv        # Full GO annotation
+```
+
+With taxonomic constraints (`--species`):
+```
+<outdir>/merged/
+├── unpropagated.tsv
+├── propagated.tsv
+├── unpropagated_filtered.tsv
+├── propagated_filtered.tsv
+└── final/
+    ├── predictions_unfiltered_slim.tsv
+    ├── predictions_unfiltered_full.tsv
+    ├── predictions_filtered_slim.tsv
+    └── predictions_filtered_full.tsv
+```
+
+When running `--mode both` or `--mode all`, outputs are placed in `<outdir>/classic/`, `<outdir>/new/`, and `<outdir>/merged/` respectively.
