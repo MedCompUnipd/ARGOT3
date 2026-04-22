@@ -186,6 +186,8 @@ Execution flags:
 
 ### Examples
 
+The `-o` argument should point to a **non-existing subdirectory** inside the output mount — the pipeline creates it. This also naturally supports keeping multiple runs under the same output volume (e.g. `/output/run1`, `/output/run2`, ...).
+
 Run the classic model:
 ```bash
 docker run --network host \
@@ -195,7 +197,7 @@ docker run --network host \
     argot3 \
     --mode classic \
     -f /input/proteins.fasta \
-    -o /output/results \
+    -o /output/run1 \
     -g /data/go.owl \
     -d /data/uniprot_wGO.dmnd \
     -t 8 \
@@ -213,7 +215,7 @@ docker run --gpus all \
     argot3 \
     --mode new \
     -f /input/proteins.fasta \
-    -o /output/results \
+    -o /output/run1 \
     -g /data/go.owl \
     -s /data/structure \
     -w /data/weights
@@ -230,7 +232,7 @@ docker run --gpus all --network host \
     --mode both \
     --exec parallel \
     -f /input/proteins.fasta \
-    -o /output/results \
+    -o /output/run1 \
     -g /data/go.owl \
     -d /data/uniprot_wGO.dmnd \
     -t 8 \
@@ -240,14 +242,14 @@ docker run --gpus all --network host \
     -w /data/weights
 ```
 
-Merge outputs from a previous run:
+Merge outputs from a previous run (point `-o` to the same run directory):
 ```bash
 docker run \
     -v /path/to/argot3_resource_bundle:/data \
     -v /path/to/output:/output \
     argot3 \
     --mode merge \
-    -o /output/results \
+    -o /output/run1 \
     -g /data/go.owl
 ```
 
@@ -262,7 +264,7 @@ docker run --gpus all --network host \
     --mode all \
     --exec parallel \
     -f /input/proteins.fasta \
-    -o /output/results \
+    -o /output/run1 \
     -g /data/go.owl \
     -d /data/uniprot_wGO.dmnd \
     -t 8 \
