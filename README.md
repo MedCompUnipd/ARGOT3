@@ -3,7 +3,7 @@
 ARGOT3 is a containerized pipeline for protein function annotation using Gene Ontology (GO) terms. It supports two annotation strategies that can be run independently or together, with an optional merging step to combine their outputs:
 
 - **Classic model**: sequence similarity-based annotation using DIAMOND, MongoDB-backed GO annotations, and the Argot3 scoring engine
-- **New model**: structure-informed deep learning annotation using ESM2 protein embeddings and trained neural network weights
+- **New model**: deep learning-based annotation using ESM2 protein embeddings and trained neural network weights
 - **Merging**: combines predictions from both models, with optional taxonomic constraint filtering
 
 ---
@@ -55,7 +55,7 @@ argot3_resource_bundle/
 │       ├── goafreq.metadata.json
 │       ├── uniprot_with_go.bson
 │       └── uniprot_with_go.metadata.json
-├── structure/                  # Protein structure files              [new model]
+├── structure/                  # GO terms (BPO, CCO, MFO) files       [new model]
 ├── weights/                    # Pre-trained model weights            [new model]
 ├── embeddings/                 # ESM2 model weights cache             [new model]
 │   └── hub/
@@ -148,7 +148,7 @@ docker run [docker options] argot3 --mode <classic|new|both|merge|all> [options]
 
 Execution mode:
   --mode <mode>          classic   Run the DIAMOND + Argot3 pipeline
-                         new       Run the structure-based deep learning pipeline
+                         new       Run the deep learning-based pipeline
                          both      Run both pipelines
                          merge     Merge existing classic and new outputs
                          all       Run both pipelines then merge
@@ -170,7 +170,7 @@ Classic model arguments:
   --mongo-port <port>    MongoDB port (default: 27017)
 
 New model arguments:
-  -s <dir>               Structure directory
+  -s <dir>               GO terms directory
   -w <dir>               Weights directory
 
 Merge arguments:
@@ -205,7 +205,7 @@ docker run --network host \
 
 Run the new model:
 ```bash
-docker run --gpus all --network host \
+docker run --gpus all \
     -v /path/to/argot3_resource_bundle:/data \
     -v /path/to/input:/input \
     -v /path/to/output:/output \

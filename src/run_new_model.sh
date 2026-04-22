@@ -45,7 +45,7 @@ go_owl=""
 usage() {
     echo "Argot3 - New Model"
     echo
-    echo "Run the Argot3 structure-based deep learning pipeline using embeddings, structure data, and trained model weights."
+    echo "Run the Argot3 deep learning-based pipeline using embeddings, structure data, and trained model weights."
     echo
     echo "Usage:"
     echo "  $0 -f <fasta> -o <outdir> -s <structure_dir> -w <weights_dir> -g <go.owl> [options]"

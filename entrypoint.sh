@@ -68,7 +68,7 @@ script_merging="./src/run_merging.sh"
 usage() {
     echo "Argot3"
     echo
-    echo "Run the Argot3 classic model, the new structure-based model, or merge their outputs."
+    echo "Run the Argot3 classic model, the new deep learning-based model, or merge their outputs."
     echo "MongoDB is expected to be running externally (e.g. via Docker Compose)."
     echo
     echo "Usage:"
@@ -77,7 +77,7 @@ usage() {
     echo "Execution mode:"
     echo "  --mode <mode>          Select pipeline to run:"
     echo "                         classic   Run the DIAMOND + Argot3 pipeline"
-    echo "                         new       Run the structure-based deep learning pipeline"
+    echo "                         new       Run the deep learning-based pipeline"
     echo "                         both      Run both pipelines"
     echo "                         merge     Merge existing classic and new outputs"
     echo "                         all       Run both pipelines then merge"
@@ -223,11 +223,12 @@ fi
 if [[ "$mode" == "merge" || "$mode" == "all" ]]; then
     [[ -f "$script_merging" ]] || { err "file not found '$script_merging' (merging script)"; exit 1; }
 
-    if [[ "$species" != "0" ]]; then
-        if ! [[ "$species" =~ ^[0-9]+$ ]]; then
-            err "invalid value for --species <taxid>, must be a positive integer (got '$species')"
-            exit 1
-        fi
+    if ! [[ "$species" =~ ^[0-9]+$ ]]; then
+        err "invalid value for --species <taxid>, must be a positive integer (got '$species')"
+        exit 1
+    fi
+
+    if [[ "$species" -ne 0 ]]; then
         [[ -z "$taxonomy_dir" ]]    && { err "missing required argument -T <dir> (required with --species)"; exit 1; }
         [[ -z "$constraints_dir" ]] && { err "missing required argument -C <dir> (required with --species)"; exit 1; }
         [[ -d "$taxonomy_dir" ]]    || { err "directory not found '$taxonomy_dir' (-T)"; exit 1; }
@@ -245,8 +246,8 @@ merged_out="$outdir/merged"
 if [[ "$mode" == "merge" ]]; then
     # merge reads from an existing outdir — do not recreate it
     [[ -d "$outdir" ]]      || { err "output directory not found '$outdir' (-o)"; exit 1; }
-    [[ -d "$classic_out/predictions" ]] || { err "predictions folder not found '$classic_out/predictions'"; exit 1; }
-    [[ -d "$new_out/predictions" ]]     || { err "predictions folder not found '$new_out/predictions'"; exit 1; }
+    [[ -d "$classic_out/predictions" ]] || { err "directory not found '$classic_out/predictions' (expected predictions output)"; exit 1; }
+    [[ -d "$new_out/predictions" ]]     || { err "directory not found '$new_out/predictions' (expected predictions output)"; exit 1; }
 else
     if [[ -d "$outdir" && "$force" -ne 1 ]]; then
         err "output directory exists '$outdir' (use --force)"
@@ -293,7 +294,7 @@ merge_cmd=(
     -o "$merged_out"
     -g "$go_owl"
 )
-[[ "$species" != "0" ]] && \
+[[ "$species" -ne 0 ]] && \
     merge_cmd+=(-s "$species" -T "$taxonomy_dir" -C "$constraints_dir")
 
 [[ "$dry_run" -eq 1 ]] && classic_cmd+=(--dry-run) && new_cmd+=(--dry-run) && merge_cmd+=(--dry-run)
@@ -317,17 +318,20 @@ elif [[ "$mode" == "merge" ]]; then
 elif [[ "$mode" == "both" ]]; then
     if [[ "$exec_mode" == "parallel" && "$dry_run" -eq 0 ]]; then
         echo "=== Running Argot3 - Classic Model ==="
-        run "${classic_cmd[@]}" > "$outdir/classic.log" 2>&1 & pid1=$!
+        "${classic_cmd[@]}" > "$outdir/classic.log" 2>&1 & pid1=$!
+        echo "  Started (PID: $pid1)"
         echo "=== Running Argot3 - New Model ======="
-        run "${new_cmd[@]}" > "$outdir/new.log" 2>&1 & pid2=$!
+        "${new_cmd[@]}" > "$outdir/new.log" 2>&1 & pid2=$!
+        echo "  Started (PID: $pid2)"
         echo
         echo "Logs:"
         echo "  Classic: $outdir/classic.log"
         echo "  New:     $outdir/new.log"
+        echo "  Waiting for processes to complete..."
 
         fail=0
-        wait $pid1 || fail=1
-        wait $pid2 || fail=1
+        wait $pid1 || { err "Classic pipeline failed"; fail=1; }
+        wait $pid2 || { err "New pipeline failed"; fail=1; }
         [[ $fail -eq 1 ]] && exit 1
 
     else
@@ -338,17 +342,20 @@ elif [[ "$mode" == "both" ]]; then
 else  # all
     if [[ "$exec_mode" == "parallel" && "$dry_run" -eq 0 ]]; then
         echo "=== Running Argot3 - Classic Model ==="
-        run "${classic_cmd[@]}" > "$outdir/classic.log" 2>&1 & pid1=$!
+        "${classic_cmd[@]}" > "$outdir/classic.log" 2>&1 & pid1=$!
+        echo "  Started (PID: $pid1)"
         echo "=== Running Argot3 - New Model ======="
-        run "${new_cmd[@]}" > "$outdir/new.log" 2>&1 & pid2=$!
+        "${new_cmd[@]}" > "$outdir/new.log" 2>&1 & pid2=$!
+        echo "  Started (PID: $pid2)"
         echo
         echo "Logs:"
         echo "  Classic: $outdir/classic.log"
         echo "  New:     $outdir/new.log"
+        echo "  Waiting for processes to complete..."
 
         fail=0
-        wait $pid1 || fail=1
-        wait $pid2 || fail=1
+        wait $pid1 || { err "Classic pipeline failed"; fail=1; }
+        wait $pid2 || { err "New pipeline failed"; fail=1; }
         [[ $fail -eq 1 ]] && exit 1
 
     else
@@ -358,3 +365,6 @@ else  # all
 
     run "${merge_cmd[@]}"
 fi
+
+echo
+echo "=== DONE ============================="
