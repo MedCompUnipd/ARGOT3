@@ -34,7 +34,7 @@ run() {
 # Default values
 # -----------------------------
 threads=1
-mongodb_host="mongodb"
+mongodb_host="localhost"
 mongodb_port=27017
 mongodb_db=""
 
@@ -62,7 +62,7 @@ usage() {
     echo
     echo "Optional arguments:"
     echo "  -t <threads>           Number of threads for DIAMOND (default: 1)"
-    echo "  -m <host>              MongoDB host (default: mongodb)"
+    echo "  -m <host>              MongoDB host (default: localhost)"
     echo "  -P <port>              MongoDB port (default: 27017)"
     echo "  -x <diamond>           Path to DIAMOND binary (default: diamond in PATH)"
     echo "  -a <argot.jar>         Path to ARGOT3 JAR (default: /app/bin/Argot3-1.0.jar)"

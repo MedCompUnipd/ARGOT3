@@ -44,7 +44,7 @@ go_owl=""
 # classic
 diamond_db=""
 threads=1
-mongo_host="mongodb"
+mongo_host="localhost"
 mongo_port=27017
 mongo_db=""
 
@@ -98,7 +98,7 @@ usage() {
     echo "  -d <db>                DIAMOND database (prefix or .dmnd file)"
     echo "  -t <threads>           Number of threads for DIAMOND (default: 1)"
     echo "  --mongo-db <name>      MongoDB database name (e.g. ARGOT_DB)"
-    echo "  --mongo-host <host>    MongoDB host (default: mongodb)"
+    echo "  --mongo-host <host>    MongoDB host (default: localhost)"
     echo "  --mongo-port <port>    MongoDB port (default: 27017)"
     echo
     echo "New model arguments:"

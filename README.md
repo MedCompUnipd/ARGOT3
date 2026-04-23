@@ -90,8 +90,8 @@ Options:
   -d <data_dir>   Host directory for persistent data (default: ~/mongo_data)
   -f <dump_dir>   Path to dump directory to restore (optional)
   -i <sif>        Singularity SIF image (optional, default: docker://mongo:7)
-  -w <workers>    Total insertion workers budget for mongorestore (default: auto)
-                  Capped at 8 workers per collection
+  -w <workers>    Total insertion workers budget for mongorestore (split across collections)
+                  (default: max available, capped at 8 workers per collection)
   -c <cols>       Number of parallel collections for mongorestore (default: 3)
   --force         Remove existing data directory before starting
 ```
@@ -217,7 +217,7 @@ Classic model arguments:
   -d <db>                DIAMOND database (prefix or .dmnd file)
   -t <threads>           Number of threads for DIAMOND (default: 1)
   --mongo-db <name>      MongoDB database name
-  --mongo-host <host>    MongoDB host (default: mongodb)
+  --mongo-host <host>    MongoDB host (default: localhost)
   --mongo-port <port>    MongoDB port (default: 27017)
 
   Note: classic mode requires --network host (Docker) so the container

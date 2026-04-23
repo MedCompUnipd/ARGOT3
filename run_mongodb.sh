@@ -40,8 +40,8 @@ usage() {
     echo "  -f <dump_dir>     Path to dump directory (will be mounted as /dump)"
     echo "  -i <sif>          Singularity SIF image (optional, default: docker://mongo:7)"
     echo "  --force           Remove existing data directory before starting"
-    echo "  -w <workers>      Total insertion workers budget (default: auto)"
-    echo "                    Capped at 8 workers per collection"
+    echo "  -w <workers>      Total insertion workers budget (split across collections)"
+    echo "                    (default: max available, capped at 8 workers per collection)"
     echo "  -c <collections>  Number of parallel collections (default: 3)"
     echo "  -h                Show this help message and exit"
     echo
