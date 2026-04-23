@@ -18,6 +18,9 @@ DUMP_FOLDER=""
 SIF_IMAGE=""
 FORCE=0
 
+WORKERS=""
+PARALLEL_COLLECTIONS="3"
+
 # -----------------------------
 # Usage
 # -----------------------------
@@ -37,6 +40,9 @@ usage() {
     echo "  -f <dump_dir>     Path to dump directory (will be mounted as /dump)"
     echo "  -i <sif>          Singularity SIF image (optional, default: docker://mongo:7)"
     echo "  --force           Remove existing data directory before starting"
+    echo "  -w <workers>      Total insertion workers budget (default: auto)"
+    echo "                    Capped at 8 workers per collection"
+    echo "  -c <collections>  Number of parallel collections (default: 3)"
     echo "  -h                Show this help message and exit"
     echo
     exit 1
@@ -55,7 +61,7 @@ for arg in "$@"; do
 done
 set -- "${args[@]+"${args[@]}"}"
 
-while getopts ":r:n:p:d:f:i:h" opt; do
+while getopts ":r:n:p:d:f:i:w:c:h" opt; do
     case $opt in
         r) RUNTIME=$OPTARG ;;
         n) MONGO_NAME=$OPTARG ;;
@@ -63,6 +69,8 @@ while getopts ":r:n:p:d:f:i:h" opt; do
         d) MONGO_DATA=$OPTARG ;;
         f) DUMP_FOLDER=$OPTARG ;;
         i) SIF_IMAGE=$OPTARG ;;
+        w) WORKERS=$OPTARG ;;
+        c) PARALLEL_COLLECTIONS=$OPTARG ;;
         h) usage ;;
         \?) err "unknown argument '-$OPTARG'"; usage ;;
         :) err "missing required value for -$OPTARG"; usage ;;
@@ -79,6 +87,18 @@ done
 
 [[ -n "$SIF_IMAGE" && ! -f "$SIF_IMAGE" ]] && {
     err "file not found '$SIF_IMAGE' (-i)"
+    exit 1
+}
+
+if [[ -n "$WORKERS" ]]; then
+    [[ "$WORKERS" =~ ^[0-9]+$ && "$WORKERS" -ge 1 ]] || {
+        err "invalid value for -w <workers> (must be >=1 integer, got '$WORKERS')"
+        exit 1
+    }
+fi
+
+[[ "$PARALLEL_COLLECTIONS" =~ ^[0-9]+$ && "$PARALLEL_COLLECTIONS" -ge 1 ]] || {
+    err "invalid value for collections (must be >=1 integer, got '$PARALLEL_COLLECTIONS')"
     exit 1
 }
 
@@ -123,6 +143,47 @@ if [[ -d "${MONGO_DATA}" ]]; then
     fi
 fi
 mkdir -p "${MONGO_DATA}"
+
+# -----------------------------
+# Auto-detect workers
+# -----------------------------
+detect_workers() {
+    local nproc=1
+
+    if command -v nproc >/dev/null 2>&1; then
+        nproc=$(nproc)
+    elif command -v sysctl >/dev/null 2>&1; then
+        nproc=$(sysctl -n hw.ncpu)
+    fi
+
+    # leave 2 CPUs free (minimum 1)
+    local safe=$((nproc - 2))
+    [[ $safe -lt 1 ]] && safe=1
+
+    # total workers (global budget)
+    if [[ -z "$WORKERS" ]]; then
+        WORKERS=$safe
+    fi
+
+    local TOTAL_WORKERS="$WORKERS"
+
+    # cap collections to total workers
+    if [[ "$PARALLEL_COLLECTIONS" -gt "$TOTAL_WORKERS" ]]; then
+        PARALLEL_COLLECTIONS="$TOTAL_WORKERS"
+    fi
+
+    # -----------------------------
+    # Split workers across collections
+    # -----------------------------
+    WORKERS=$(( (TOTAL_WORKERS + PARALLEL_COLLECTIONS - 1) / PARALLEL_COLLECTIONS ))
+    [[ "$WORKERS" -lt 1 ]] && WORKERS=1
+    # Cap at 8
+    [[ "$WORKERS" -gt 8 ]] && WORKERS=8
+
+    echo "Total workers:        ${TOTAL_WORKERS}"
+    echo "Parallel collections: ${PARALLEL_COLLECTIONS}"
+    echo "Workers/collection:   ${WORKERS}"
+}
 
 # -----------------------------
 # Auto-detect runtime
@@ -267,6 +328,8 @@ restore_dump() {
         return
     fi
 
+    detect_workers
+
     # Validate on host BEFORE trying container restore
     if [[ ! -d "${DUMP_FOLDER}" ]]; then
         err "dump folder not found '${DUMP_FOLDER}'"
@@ -276,17 +339,24 @@ restore_dump() {
     echo "Restoring database from dump (mounted at /dump)..."
     warn "existing data will be overwritten (--drop)"
 
-    # mongorestore --drop --numInsertionWorkersPerCollection 4 /dump
-
     if [[ "${RUNTIME}" == "docker" ]]; then
         docker exec -i "${MONGO_NAME}" \
-            mongorestore --drop /dump || {
+            mongorestore \
+            --drop \
+            --numInsertionWorkersPerCollection "${WORKERS}" \
+            --numParallelCollections "${PARALLEL_COLLECTIONS}" \
+            /dump || {
                 err "mongorestore failed (docker)"
                 exit 1
             }
     else
         singularity exec instance://"${MONGO_NAME}" \
-            mongorestore --port "${MONGO_PORT}" --drop /dump || {
+            mongorestore \
+            --port "${MONGO_PORT}" \
+            --drop \
+            --numInsertionWorkersPerCollection "${WORKERS}" \
+            --numParallelCollections "${PARALLEL_COLLECTIONS}" \
+            /dump || {
                 err "mongorestore failed (singularity)"
                 exit 1
             }
