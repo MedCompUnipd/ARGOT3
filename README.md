@@ -96,12 +96,12 @@ Options:
 ### Examples
 Start MongoDB (auto-detected) and restore a dump:
 ```bash
-./run_mongodb.sh -f /path/to/argot_dump/
+./run_mongodb.sh -f /path/to/argot3_resource_bundle/dump/
 ```
 
 Use a custom port and container name:
 ```bash
-./run_mongodb.sh -n my-mongo -p 27018 -f /path/to/argot_dump/
+./run_mongodb.sh -n my-mongo -p 27018 -f /path/to/argot3_resource_bundle/dump/
 ```
 
 #### Use Singularity on HPC with a pre-built SIF
@@ -113,10 +113,32 @@ singularity build mongo.sif docker://mongo:7
 ```
 
 ```bash
-./run_mongodb.sh -r singularity -i /path/to/mongo.sif -f /path/to/argot_dump/
+./run_mongodb.sh -r singularity -i /path/to/mongo.sif -f /path/to/argot3_resource_bundle/dump/
 ```
 
 > **Note:** The dump directory must be in `mongodump` directory format (created with `mongodump --out <dir>`).
+
+### Re-running with a dump on an existing container
+
+Volume mounts are set at container creation time and cannot be changed on a running or stopped container. If a MongoDB container or Singularity instance already exists (created without `-f`) and you later want to restore a dump into it, the dump directory will not be mounted and `mongorestore` will fail.
+
+In this case, remove the existing container/instance first:
+
+```bash
+# Docker
+docker rm -f argot-mongodb
+
+# Singularity
+singularity instance stop argot-mongodb
+```
+
+Then re-run `run_mongodb.sh` with `-f`:
+
+```bash
+./run_mongodb.sh -f /path/to/argot3_resource_bundle/dump/
+```
+
+> **Note:** `--force` only removes the persistent **data directory** (`~/mongo_data` by default), not the container itself. To reset everything, remove both the container and the data directory.
 
 ### Connecting ARGOT3 to MongoDB
 
