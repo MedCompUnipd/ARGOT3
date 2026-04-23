@@ -90,6 +90,9 @@ Options:
   -d <data_dir>   Host directory for persistent data (default: ~/mongo_data)
   -f <dump_dir>   Path to dump directory to restore (optional)
   -i <sif>        Singularity SIF image (optional, default: docker://mongo:7)
+  -w <workers>    Total insertion workers budget for mongorestore (default: auto)
+                  Capped at 8 workers per collection
+  -c <cols>       Number of parallel collections for mongorestore (default: 3)
   --force         Remove existing data directory before starting
 ```
 
@@ -142,7 +145,33 @@ Then re-run `run_mongodb.sh` with `-f`:
 
 ### Connecting ARGOT3 to MongoDB
 
-*TO DO*
+The classic model pipeline connects to MongoDB at runtime using the `--mongo-host`, `--mongo-port`, and `--mongo-db` flags passed to `entrypoint.sh`.
+
+**Docker**
+
+MongoDB runs on the host (via `run_mongodb.sh`) and the ARGOT3 container connects to it over the host network. Use `--network host` so that `localhost` inside the container resolves to the host:
+
+```bash
+docker run --network host \
+    ... \
+    argot3 --mode classic \
+    --mongo-host localhost \
+    --mongo-db ARGOT_DB \
+    ...
+```
+
+Without `--network host`, `localhost` inside the container refers to the container itself, not the host, and the connection will fail.
+
+**Singularity**
+
+Singularity containers share the host network by default, so `--mongo-host localhost` works without any extra flags:
+
+```bash
+singularity run ... argot3.sif --mode classic \
+    --mongo-host localhost \
+    --mongo-db ARGOT_DB \
+    ...
+```
 
 ---
 
@@ -190,6 +219,9 @@ Classic model arguments:
   --mongo-db <name>      MongoDB database name
   --mongo-host <host>    MongoDB host (default: mongodb)
   --mongo-port <port>    MongoDB port (default: 27017)
+
+  Note: classic mode requires --network host (Docker) so the container
+  can reach MongoDB running on the host (see MongoDB Setup section).
 
 New model arguments:
   -s <dir>               GO terms directory
