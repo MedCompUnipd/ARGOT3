@@ -233,6 +233,7 @@ run_docker() {
         fi
 
         docker run -d \
+            --init \
             --name "${MONGO_NAME}" \
             -p "${MONGO_PORT}:27017" \
             -v "${MONGO_DATA}:/data/db" \
@@ -296,7 +297,7 @@ wait_mongo() {
     ready=0
     for i in $(seq 1 30); do
         if [[ "$RUNTIME" == "docker" ]]; then
-            if docker exec -i "${MONGO_NAME}" \
+            if docker exec "${MONGO_NAME}" \
                      mongosh --quiet --eval "db.runCommand({ ping: 1 })" >/dev/null 2>&1; then
                 ready=1
                 break
@@ -340,7 +341,7 @@ restore_dump() {
     warn "existing data will be overwritten (--drop)"
 
     if [[ "${RUNTIME}" == "docker" ]]; then
-        docker exec -i "${MONGO_NAME}" \
+        docker exec "${MONGO_NAME}" \
             mongorestore \
             --drop \
             --numInsertionWorkersPerCollection "${WORKERS}" \
