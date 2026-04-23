@@ -80,7 +80,7 @@ MongoDB must be running before the pipeline is invoked. Use `run_mongodb.sh` to 
 
 ### Usage
 
-```bash
+```
 ./run_mongodb.sh [options]
 
 Options:
@@ -98,12 +98,12 @@ Options:
 
 ### Examples
 Start MongoDB (auto-detected) and restore a dump:
-```bash
+```
 ./run_mongodb.sh -f /path/to/argot3_resource_bundle/dump/
 ```
 
 Use a custom port and container name:
-```bash
+```
 ./run_mongodb.sh -n my-mongo -p 27018 -f /path/to/argot3_resource_bundle/dump/
 ```
 
@@ -111,11 +111,11 @@ Use a custom port and container name:
 
 For HPC environments without Docker, use `run_mongodb.sh` with `-r singularity` (the software auto-detects Singularity if Docker is missing). It is recommended to provide a pre-built SIF image to avoid pulling from Docker Hub on compute nodes:
 
-```bash
+```
 singularity build mongo.sif docker://mongo:7
 ```
 
-```bash
+```
 ./run_mongodb.sh -r singularity -i /path/to/mongo.sif -f /path/to/argot3_resource_bundle/dump/
 ```
 
@@ -127,7 +127,7 @@ Volume mounts are set at container creation time and cannot be changed on a runn
 
 In this case, remove the existing container/instance first:
 
-```bash
+```
 # Docker
 docker rm -f argot-mongodb
 
@@ -137,7 +137,7 @@ singularity instance stop argot-mongodb
 
 Then re-run `run_mongodb.sh` with `-f`:
 
-```bash
+```
 ./run_mongodb.sh -f /path/to/argot3_resource_bundle/dump/
 ```
 
@@ -151,7 +151,7 @@ The classic model pipeline connects to MongoDB at runtime using the `--mongo-hos
 
 MongoDB runs on the host (via `run_mongodb.sh`) and the ARGOT3 container connects to it over the host network. Use `--network host` so that `localhost` inside the container resolves to the host:
 
-```bash
+```
 docker run --network host \
     ... \
     argot3 --mode classic \
@@ -166,7 +166,7 @@ Without `--network host`, `localhost` inside the container refers to the contain
 
 Singularity containers share the host network by default, so `--mongo-host localhost` works without any extra flags:
 
-```bash
+```
 singularity run ... argot3.sif --mode classic \
     --mongo-host localhost \
     --mongo-db ARGOT_DB \
@@ -177,7 +177,7 @@ singularity run ... argot3.sif --mode classic \
 
 ## Building the Docker Image
 
-```bash
+```
 docker build -t argot3 .
 ```
 
@@ -243,7 +243,7 @@ Execution flags:
 The `-o` argument should point to a **non-existing subdirectory** inside the output mount — the pipeline creates it. This also naturally supports keeping multiple runs under the same output volume (e.g. `/output/run1`, `/output/run2`, ...).
 
 Run the classic model:
-```bash
+```
 docker run --network host \
     -v /path/to/argot3_resource_bundle:/data \
     -v /path/to/proteins.fasta:/input/proteins.fasta \
@@ -260,7 +260,7 @@ docker run --network host \
 ```
 
 Run the new model:
-```bash
+```
 docker run --gpus all \
     -v /path/to/argot3_resource_bundle:/data \
     -v /path/to/proteins.fasta:/input/proteins.fasta \
@@ -276,7 +276,7 @@ docker run --gpus all \
 ```
 
 Run both pipelines in parallel:
-```bash
+```
 docker run --gpus all --network host \
     -v /path/to/argot3_resource_bundle:/data \
     -v /path/to/proteins.fasta:/input/proteins.fasta \
@@ -297,7 +297,7 @@ docker run --gpus all --network host \
 ```
 
 Merge outputs from a previous run (point `-o` to the same run directory):
-```bash
+```
 docker run \
     -v /path/to/argot3_resource_bundle:/data \
     -v /path/to/output:/output \
@@ -308,7 +308,7 @@ docker run \
 ```
 
 Run all pipelines end-to-end with taxonomic constraints:
-```bash
+```
 docker run --gpus all --network host \
     -v /path/to/argot3_resource_bundle:/data \
     -v /path/to/proteins.fasta:/input/proteins.fasta \
