@@ -16,6 +16,7 @@ MONGO_PORT="27017"
 MONGO_DATA="${HOME}/mongo_data"
 DUMP_FOLDER=""
 SIF_IMAGE=""
+DOCKER_IMAGE="mongo:8"
 FORCE=0
 
 WORKERS=""
@@ -38,10 +39,10 @@ usage() {
     echo "  -p <port>         MongoDB port (default: 27017)"
     echo "  -d <data_dir>     Host directory for persistent data (default: ~/mongo_data)"
     echo "  -f <dump_dir>     Path to dump directory (will be mounted as /dump)"
-    echo "  -i <sif>          Singularity SIF image (optional, default: docker://mongo:7)"
+    echo "  -i <sif>          Singularity SIF image (optional, default: docker://mongo:8)"
     echo "  --force           Remove existing data directory before starting"
     echo "  -w <workers>      Total insertion workers budget (split across collections)"
-    echo "                    (default: max available, capped at 8 workers per collection)"
+    echo "                    (default: max available, capped at 16 workers per collection)"
     echo "  -c <collections>  Number of parallel collections (default: 3)"
     echo "  -h                Show this help message and exit"
     echo
@@ -85,10 +86,12 @@ done
     exit 1
 }
 
-[[ -n "$SIF_IMAGE" && ! -f "$SIF_IMAGE" ]] && {
-    err "file not found '$SIF_IMAGE' (-i)"
-    exit 1
-}
+if [[ -n "$SIF_IMAGE" ]]; then
+    if [[ "$SIF_IMAGE" != docker://* && ! -f "$SIF_IMAGE" ]]; then
+        err "file not found '$SIF_IMAGE' (-i)"
+        exit 1
+    fi
+fi
 
 if [[ -n "$WORKERS" ]]; then
     [[ "$WORKERS" =~ ^[0-9]+$ && "$WORKERS" -ge 1 ]] || {
@@ -177,8 +180,8 @@ detect_workers() {
     # -----------------------------
     WORKERS=$(( (TOTAL_WORKERS + PARALLEL_COLLECTIONS - 1) / PARALLEL_COLLECTIONS ))
     [[ "$WORKERS" -lt 1 ]] && WORKERS=1
-    # Cap at 8
-    [[ "$WORKERS" -gt 8 ]] && WORKERS=8
+    # Cap at 16
+    [[ "$WORKERS" -gt 16 ]] && WORKERS=16
 
     echo "Total workers:        ${TOTAL_WORKERS}"
     echo "Parallel collections: ${PARALLEL_COLLECTIONS}"
@@ -238,7 +241,7 @@ run_docker() {
             -p "${MONGO_PORT}:27017" \
             -v "${MONGO_DATA}:/data/db" \
             "${dump_mount[@]+"${dump_mount[@]}"}" \
-            mongo:7 || {
+            "${DOCKER_IMAGE}" || {
                 err "failed to start container (port ${MONGO_PORT} in use?)"
                 exit 1
             }
@@ -254,7 +257,7 @@ run_singularity() {
         exit 1
     }
 
-    local image="${SIF_IMAGE:-docker://mongo:7}"
+    local image="${SIF_IMAGE:-docker://${DOCKER_IMAGE}}"
 
     if singularity instance list 2>/dev/null | awk 'NR>1 {print $1}' | grep -q "^${MONGO_NAME}$"; then
         echo "Instance '${MONGO_NAME}' already running"
