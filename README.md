@@ -17,14 +17,15 @@ ARGOT3/
 ├── run_mongodb.sh              # Host-side MongoDB setup script (Docker or Singularity)
 ├── bin/
 │   ├── diamond                 # DIAMOND binary
-│   └── Argot3-1.0.jar          # ARGOT3 Java engine
+│   └── Argot3-1.0.jar          # ARGOT3 Java engine (pre-built)
 └── src/
     ├── run_classic_model.sh    # Classic pipeline runner
     ├── run_new_model.sh        # New model pipeline runner
     ├── run_merging.sh          # Merging pipeline runner
     ├── classic_model/          # Python scripts for the classic pipeline
     ├── new_model/              # Python scripts for the new model pipeline
-    └── merging/                # Python scripts for the merging pipeline
+    ├── merging/                # Python scripts for the merging pipeline
+    └── java/argot3/            # Argot3 Java source code (see src/java/argot3/README.md)
 ```
 
 ---
@@ -174,6 +175,22 @@ singularity run ... argot3.sif --mode classic \
     --mongo-db ARGOT_DB \
     ...
 ```
+
+---
+
+## Building the Argot3 JAR
+
+The Java source code for the Argot3 scoring engine is in `src/java/argot3/`. A pre-built JAR is already provided at `bin/Argot3-1.0.jar` and is used by the pipeline — rebuilding is only needed if you modify the Java source.
+
+See [`src/java/argot3/README.md`](src/java/argot3/README.md) for full build instructions. In brief, from `src/java/argot3/`:
+
+```bash
+mvn install:install-file -Dfile=./lib/jgrapht-bundle-1.3.0.jar -DgroupId=org.jgrapht -DartifactId=jgrapht-bundle -Dversion=1.3.0 -Dpackaging=jar
+mvn install:install-file -Dfile=./lib/goUtility-4.0.jar -DgroupId=it.unipd.medicina.medcomp -DartifactId=goUtility -Dversion=4.0 -Dpackaging=jar
+mvn clean install
+```
+
+The JAR is produced in `target/Argot3-1.0.jar`. Copy it to `bin/` to use it with the pipeline.
 
 ---
 

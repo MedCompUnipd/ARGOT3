@@ -247,6 +247,7 @@ run python3 "$src_dir/new_blastp_to_argot_inp.py" \
 run java -jar "$argot_jar" \
     -i "$input_dir/argot_in.txt" \
     -s "$mongodb_host" \
+    -P "$mongodb_port" \
     -d "$mongodb_db" \
     -o "$output_dir/argot_out.txt" \
     -g "$go_owl" \
