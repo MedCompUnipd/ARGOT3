@@ -226,7 +226,7 @@ Classic model arguments:
   can reach MongoDB running on the host (see MongoDB Setup section).
 
 New model arguments:
-  -s <dir>               GO terms directory
+  -s <dir>               Structure directory (GO terms files)
   -w <dir>               Weights directory
 
 Merge arguments:
@@ -238,6 +238,7 @@ Execution flags:
   --dry-run              Print commands without executing them
   --verbose              Print commands as they are executed
   --force                Overwrite existing output directory
+  -h                     Show this help message and exit
 ```
 
 ### Examples
