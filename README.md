@@ -89,11 +89,13 @@ Options:
   -p <port>       MongoDB port (default: 27017)
   -d <data_dir>   Host directory for persistent data (default: ~/mongo_data)
   -f <dump_dir>   Path to dump directory to restore (optional)
-  -i <sif>        Singularity SIF image (optional, default: docker://mongo:7)
+  -I <image>      MongoDB image name (default: mongo:8)
+  -i <sif>        Singularity SIF image (optional, default: docker://<image>)
   -w <workers>    Total insertion workers budget for mongorestore (split across collections)
-                  (default: max available, capped at 8 workers per collection)
+                  (default: max available, capped at 16 workers per collection)
   -c <cols>       Number of parallel collections for mongorestore (default: 3)
   --force         Remove existing data directory before starting
+  -h              Show this help message and exit
 ```
 
 ### Examples
@@ -112,7 +114,7 @@ Use a custom port and container name:
 For HPC environments without Docker, use `run_mongodb.sh` with `-r singularity` (the software auto-detects Singularity if Docker is missing). It is recommended to provide a pre-built SIF image to avoid pulling from Docker Hub on compute nodes:
 
 ```
-singularity build mongo.sif docker://mongo:7
+singularity build mongo.sif docker://mongo:8
 ```
 
 ```

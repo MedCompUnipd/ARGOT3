@@ -39,7 +39,8 @@ usage() {
     echo "  -p <port>         MongoDB port (default: 27017)"
     echo "  -d <data_dir>     Host directory for persistent data (default: ~/mongo_data)"
     echo "  -f <dump_dir>     Path to dump directory (will be mounted as /dump)"
-    echo "  -i <sif>          Singularity SIF image (optional, default: docker://mongo:8)"
+    echo "  -I <image>        MongoDB image name (default: mongo:8)"
+    echo "  -i <sif>          Singularity SIF image (optional, default: docker://<image>)"
     echo "  --force           Remove existing data directory before starting"
     echo "  -w <workers>      Total insertion workers budget (split across collections)"
     echo "                    (default: max available, capped at 16 workers per collection)"
@@ -62,13 +63,14 @@ for arg in "$@"; do
 done
 set -- "${args[@]+"${args[@]}"}"
 
-while getopts ":r:n:p:d:f:i:w:c:h" opt; do
+while getopts ":r:n:p:d:f:I:i:w:c:h" opt; do
     case $opt in
         r) RUNTIME=$OPTARG ;;
         n) MONGO_NAME=$OPTARG ;;
         p) MONGO_PORT=$OPTARG ;;
         d) MONGO_DATA=$OPTARG ;;
         f) DUMP_FOLDER=$OPTARG ;;
+        I) DOCKER_IMAGE=$OPTARG ;;
         i) SIF_IMAGE=$OPTARG ;;
         w) WORKERS=$OPTARG ;;
         c) PARALLEL_COLLECTIONS=$OPTARG ;;
