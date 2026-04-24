@@ -2,7 +2,7 @@
 
 ARGOT3 is a containerized pipeline for protein function annotation using Gene Ontology (GO) terms. It supports two annotation strategies that can be run independently or together, with an optional merging step to combine their outputs:
 
-- **Classic model**: sequence similarity-based annotation using DIAMOND, MongoDB-backed GO annotations, and the Argot3 scoring engine
+- **Classic model**: sequence similarity-based annotation using DIAMOND, MongoDB-backed GO annotations, and the scoring engine
 - **New model**: deep learning-based annotation using ESM2 protein embeddings and trained neural network weights
 - **Merging**: combines predictions from both models, with optional taxonomic constraint filtering
 
@@ -25,7 +25,7 @@ ARGOT3/
     ├── classic_model/          # Python scripts for the classic pipeline
     ├── new_model/              # Python scripts for the new model pipeline
     ├── merging/                # Python scripts for the merging pipeline
-    └── java/argot3/            # Argot3 Java source code (see src/java/argot3/README.md)
+    └── java/argot3/            # ARGOT3 Java source code (see src/java/argot3/README.md)
 ```
 
 ---
@@ -180,9 +180,9 @@ singularity run ... argot3.sif --mode classic \
 
 ---
 
-## Building the Argot3 JAR
+## Building the ARGOT3 JAR
 
-The Java source code for the Argot3 scoring engine is in `src/java/argot3/`. A pre-built JAR is already provided at `bin/Argot3-1.0.jar` and is used by the pipeline — rebuilding is only needed if you modify the Java source.
+The Java source code for the ARGOT3 scoring engine is in `src/java/argot3/`. A pre-built JAR is already provided at `bin/Argot3-1.0.jar` and is used by the pipeline — rebuilding is only needed if you modify the Java source.
 
 See [`src/java/argot3/README.md`](src/java/argot3/README.md) for full build instructions. In brief, from `src/java/argot3/`:
 
