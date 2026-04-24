@@ -99,6 +99,8 @@ Options:
   -h              Show this help message and exit
 ```
 
+> **Warning:** The ARGOT3 database dump is large. Restoring it requires approximately **100 GB of free disk space** in the persistent data directory (`-d`). Make sure the target filesystem has sufficient space before running with `-f`.
+
 ### Examples
 Start MongoDB (auto-detected) and restore a dump:
 ```
