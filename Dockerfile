@@ -61,4 +61,4 @@ ENV LC_ALL=C
 ENV LANG=C
 
 # Entrypoint
-ENTRYPOINT [ "/app/entrypoint.sh" ]
+ENTRYPOINT [ "bash", "/app/entrypoint.sh" ]

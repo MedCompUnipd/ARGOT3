@@ -58,9 +58,9 @@ taxonomy_dir=""
 constraints_dir=""
 
 # scripts
-script_classic="./src/run_classic_model.sh"
-script_new="./src/run_new_model.sh"
-script_merging="./src/run_merging.sh"
+script_classic="/app/src/run_classic_model.sh"
+script_new="/app/src/run_new_model.sh"
+script_merging="/app/src/run_merging.sh"
 
 # -----------------------------
 # Usage
