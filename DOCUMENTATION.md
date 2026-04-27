@@ -198,12 +198,18 @@ The JAR is produced in `target/Argot3-1.0.jar`. Copy it to `bin/` to use it with
 
 ## Container Image
 
-Pre-built images are available on the GitHub Container Registry:
+Pre-built images are available on the GitHub Container Registry ([package page](https://github.com/MedCompUnipd/ARGOT3/pkgs/container/argot3)):
 
 ```
+# Docker
 docker pull ghcr.io/medcompunipd/argot3:<version>
 docker tag ghcr.io/medcompunipd/argot3:<version> argot3
+
+# Singularity
+singularity build argot3.sif docker://ghcr.io/medcompunipd/argot3:<version>
 ```
+
+> **Note:** building the Singularity image may require several tens of GB of temporary disk space. Set `SINGULARITY_TMPDIR` and `SINGULARITY_CACHEDIR` to change default directories if needed.
 
 To build locally from source:
 

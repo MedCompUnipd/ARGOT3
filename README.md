@@ -18,7 +18,7 @@ tar -xzf argot3_resource_bundle.tar.gz
 
 ## 2. Get the container image
 
-**Pre-built (recommended)** — pull directly from the registry:
+**Pre-built (recommended)** — pull directly from the GitHub Container Registry ([package page](https://github.com/MedCompUnipd/ARGOT3/pkgs/container/argot3)):
 
 ```
 # Docker
@@ -28,6 +28,8 @@ docker tag ghcr.io/medcompunipd/argot3:<version> argot3
 # Singularity
 singularity build argot3.sif docker://ghcr.io/medcompunipd/argot3:<version>
 ```
+
+> **Note:** building the Singularity image may require several tens of GB of temporary disk space. Set `SINGULARITY_TMPDIR` and `SINGULARITY_CACHEDIR` to change default directories if needed.
 
 **Build locally** — from the repository source:
 
