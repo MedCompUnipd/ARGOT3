@@ -16,17 +16,26 @@ tar -xzf argot3_resource_bundle.tar.gz
 
 ---
 
-## 2. Build the container image
+## 2. Get the container image
 
-Pre-built Docker and Singularity (`.sif`) images are available for direct download [here](#) *(link to be added)*, or can be built locally:
+**Pre-built (recommended)** — pull directly from the registry:
 
-**Docker**
 ```
+# Docker
+docker pull ghcr.io/medcompunipd/argot3:<version>
+docker tag ghcr.io/medcompunipd/argot3:<version> argot3
+
+# Singularity
+singularity build argot3.sif docker://ghcr.io/medcompunipd/argot3:<version>
+```
+
+**Build locally** — from the repository source:
+
+```
+# Docker
 docker build -t argot3 .
-```
 
-**Singularity** — build from the Docker image after step above:
-```
+# Singularity (requires Docker image built above)
 singularity build argot3.sif docker-daemon://argot3:latest
 ```
 

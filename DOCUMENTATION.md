@@ -180,13 +180,13 @@ singularity run ... argot3.sif --mode classic \
 
 ---
 
-## Building the ARGOT3 JAR
+## ARGOT3 JAR
 
 The Java source code for the ARGOT3 scoring engine is in `src/java/argot3/`. A pre-built JAR is already provided at `bin/Argot3-1.0.jar` and is used by the pipeline — rebuilding is only needed if you modify the Java source.
 
 See [`src/java/argot3/README.md`](src/java/argot3/README.md) for full build instructions. In brief, from `src/java/argot3/`:
 
-```bash
+```
 mvn install:install-file -Dfile=./lib/jgrapht-bundle-1.3.0.jar -DgroupId=org.jgrapht -DartifactId=jgrapht-bundle -Dversion=1.3.0 -Dpackaging=jar
 mvn install:install-file -Dfile=./lib/goUtility-4.0.jar -DgroupId=it.unipd.medicina.medcomp -DartifactId=goUtility -Dversion=4.0 -Dpackaging=jar
 mvn clean install
@@ -196,7 +196,16 @@ The JAR is produced in `target/Argot3-1.0.jar`. Copy it to `bin/` to use it with
 
 ---
 
-## Building the Docker Image
+## Container Image
+
+Pre-built images are available on the GitHub Container Registry:
+
+```
+docker pull ghcr.io/medcompunipd/argot3:<version>
+docker tag ghcr.io/medcompunipd/argot3:<version> argot3
+```
+
+To build locally from source:
 
 ```
 docker build -t argot3 .
@@ -209,11 +218,11 @@ The image is based on `nvcr.io/nvidia/tensorflow:24.01-tf2-py3` and includes:
 
 ---
 
-## Running the Pipeline
+## Pipeline Usage
 
 The main entry point is `entrypoint.sh`, which is set as the Docker `ENTRYPOINT`.
 
-### Usage
+### Arguments
 
 ```
 docker run [docker options] argot3 --mode <classic|new|both|merge|all> [options]
@@ -421,4 +430,4 @@ With taxonomic constraints (`--species`):
     └── predictions_filtered_full.tsv
 ```
 
-When running `--mode both` or `--mode all`, outputs are placed in `<outdir>/classic/`, `<outdir>/new/`, and `<outdir>/merged/` respectively.
+When running `--mode both`, outputs are placed in `<outdir>/classic/` and `<outdir>/new/`. With `--mode all`, the merged output is additionally placed in `<outdir>/merged/`.
