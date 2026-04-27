@@ -18,7 +18,7 @@ tar -xzf argot3_resource_bundle.tar.gz
 
 ## 2. Build the container image
 
-> **Note:** Pre-built Docker and Singularity (`.sif`) images will be available for direct download — check the download link in step 1 once published.
+Pre-built Docker and Singularity (`.sif`) images are available for direct download [here](#) *(link to be added)*, or can be built locally:
 
 **Docker**
 ```
