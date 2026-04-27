@@ -202,11 +202,11 @@ Pre-built images are available on the GitHub Container Registry ([package page](
 
 ```
 # Docker
-docker pull ghcr.io/medcompunipd/argot3:<version>
-docker tag ghcr.io/medcompunipd/argot3:<version> argot3
+docker pull ghcr.io/medcompunipd/argot3:latest
+docker tag ghcr.io/medcompunipd/argot3:latest argot3
 
 # Singularity
-singularity build argot3.sif docker://ghcr.io/medcompunipd/argot3:<version>
+singularity build argot3.sif docker://ghcr.io/medcompunipd/argot3:latest
 ```
 
 > **Note:** Building the Singularity image may require several tens of GB of temporary disk space. Set `SINGULARITY_TMPDIR` and `SINGULARITY_CACHEDIR` to change default directories if needed.
@@ -276,6 +276,17 @@ Execution flags:
 ```
 
 ### Examples
+
+All examples below use Docker. For Singularity, apply these substitutions:
+
+| Docker | Singularity |
+|--------|-------------|
+| `docker run` | `singularity run` |
+| `--gpus all` | `--nv` *(omit if no GPU)* |
+| `--network host` | *(omit — host network is default)* |
+| `-v src:dst` | `--bind src:dst` |
+| `-e VAR=val` | `--env VAR=val` |
+| `argot3` | `argot3.sif` |
 
 The `-o` argument should point to a **non-existing subdirectory** inside the output mount — the pipeline creates it. This also naturally supports keeping multiple runs under the same output volume (e.g. `/output/run1`, `/output/run2`, ...).
 

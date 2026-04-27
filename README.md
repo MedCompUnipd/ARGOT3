@@ -22,11 +22,11 @@ tar -xzf argot3_resource_bundle.tar.gz
 
 ```
 # Docker
-docker pull ghcr.io/medcompunipd/argot3:<version>
-docker tag ghcr.io/medcompunipd/argot3:<version> argot3
+docker pull ghcr.io/medcompunipd/argot3:latest
+docker tag ghcr.io/medcompunipd/argot3:latest argot3
 
 # Singularity
-singularity build argot3.sif docker://ghcr.io/medcompunipd/argot3:<version>
+singularity build argot3.sif docker://ghcr.io/medcompunipd/argot3:latest
 ```
 
 > **Note:** Building the Singularity image may require several tens of GB of temporary disk space. Set `SINGULARITY_TMPDIR` and `SINGULARITY_CACHEDIR` to change default directories if needed.
