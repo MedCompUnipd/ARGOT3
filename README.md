@@ -29,7 +29,7 @@ docker tag ghcr.io/medcompunipd/argot3:<version> argot3
 singularity build argot3.sif docker://ghcr.io/medcompunipd/argot3:<version>
 ```
 
-> **Note:** building the Singularity image may require several tens of GB of temporary disk space. Set `SINGULARITY_TMPDIR` and `SINGULARITY_CACHEDIR` to change default directories if needed.
+> **Note:** Building the Singularity image may require several tens of GB of temporary disk space. Set `SINGULARITY_TMPDIR` and `SINGULARITY_CACHEDIR` to change default directories if needed.
 
 **Build locally** — from the repository source:
 
