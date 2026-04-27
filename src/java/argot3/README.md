@@ -32,15 +32,3 @@ The JAR file will be created in the `target/` directory.
 ## Running
 
 java -jar target/Argot3-1.0.jar [options]
-
-## Containers
-
-Container definitions are provided in the `containers/` folder.
-
-### Docker
-
-docker build -t <image_name> -f <dockerfile_path> .
-
-### Singularity
-
-singularity build -F <image_name>.sif <definition_file_path>
